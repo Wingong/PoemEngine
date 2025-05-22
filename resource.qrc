@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>data/ju_tab.csv</file>
+        <file>data/qts.csv</file>
+    </qresource>
+</RCC>
