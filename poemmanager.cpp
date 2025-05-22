@@ -134,7 +134,7 @@ void PoemManager::onQuery(const QString &ju,
 
     QMap<QString, QList<int>> jumap_search;
 
-    auto yans = splitNums(shu);
+    auto yans = splitNums(yan);
     auto shus = splitNums(shu);
     auto ticais = ticai.split(rSep);
     ticais = QSet<QString>(ticais.begin(), ticais.end()).values();

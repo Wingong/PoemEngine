@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(PoemEngine VERSION 0.0.2 LANGUAGES CXX)
+project(PoemEngine VERSION 0.0.3 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -18,12 +18,22 @@ qt_add_qml_module(appPoemEngine
     URI PoemEngine
     VERSION 1.0
     QML_FILES
-        Main.qml
-        SOURCES poemmanager.cpp poemmanager.h
-        SOURCES qmlinterface.h
-        SOURCES qmlinterface.cpp
-        RESOURCES CHANGELOG.md
+        PoemEngineUi/Main.qml
+    SOURCES
+        poemmanager.cpp
+        poemmanager.h
+        qmlinterface.h
+        qmlinterface.cpp
+    RESOURCES
+        CHANGELOG.md
+        # qtquickcontrols2.conf
         # RESOURCES android/AndroidManifest.xml android/build.gradle android/res/values/libs.xml android/res/xml/qtprovider_paths.xml
+)
+
+qt_add_resources(appPoemEngine "qtquickcontrols2_conf_resource"
+    PREFIX "/"
+    FILES
+        PoemEngineUi/qtquickcontrols2.conf
 )
 
 qt_add_resources(appPoemEngine "resources"
