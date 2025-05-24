@@ -2,6 +2,8 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls.Material 2.15
+import Qt.labs.settings
+
 
 Window {
     id: root
@@ -16,6 +18,72 @@ Window {
     visible: true
     title: qsTr("诗句检索")
 
+    // property string c_title : model.col0
+    // property string c_author: model.col1
+    // property string c_ju    : model.col2
+    // property string c_yan   : model.col3
+    // property string c_jushu : model.col4
+    // property string c_ticai : model.col5
+    // property string c_juind : model.col6
+    // property string c_pz    : model.col7
+    // property string c_id    : model.col8
+
+    property var trDict: {
+        "诗句": qsTr("诗句"),
+        "平仄": qsTr("平仄"),
+        "诗题": qsTr("诗题"),
+        "作者": qsTr("作者"),
+        "言数": qsTr("言数"),
+        "句数": qsTr("句数"),
+        "体裁": qsTr("体裁"),
+        "句序": qsTr("句序")
+    }
+
+    property var colDict: {
+        "诗句": 2,
+        "平仄": 7,
+        "诗题": 0,
+        "作者": 1,
+        "言数": 3,
+        "句数": 4,
+        "体裁": 5,
+        "句序": 6
+    }
+
+    Settings {
+        id: settings
+        category: "UserPreferences"
+        property string languageCode    : ""
+        property int    theme           : 0
+        property bool   strict_ju       : false
+        property bool   strict_pz       : false
+        property bool   strict_title    : true
+        property bool   strict_author   : true
+        property bool   strict_ticai    : true
+        property int    sort1           : 3
+        property bool   asc1            : true
+        property int    sort2           : 2
+        property bool   asc2            : true
+        property int    sort3           : 7
+        property bool   asc3            : true
+        property bool   disp_pz         : true
+        property bool   general_search  : true
+        // property
+    }
+
+    Component.onCompleted: {
+        console.error(settings.languageCode)
+        interf.setLanguage(settings.languageCode)
+    }
+
+    Connections {
+        target: interf
+        onPoemResultReceived: (poem) => {
+            popup_Poem.poem  = poem
+            popup_Poem.open()
+        }
+    }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 16
@@ -27,7 +95,7 @@ Window {
             spacing: 8
 
             Label {
-                text: "詩題"
+                text: trDict["诗题"]
             }
 
             TextField {
@@ -35,12 +103,12 @@ Window {
                 topPadding: 0
                 bottomPadding: 0
                 Layout.fillWidth: true
-                placeholderText: "詩題..."
-                Layout.preferredHeight: text_default_height
+                placeholderText: qsTr("送杜少府之任蜀州")
+                Layout.preferredHeight: root.text_default_height
             }
 
             Label {
-                text: "言數"
+                text: trDict["言数"]
             }
 
             TextField {
@@ -50,12 +118,12 @@ Window {
                 leftPadding: 10
                 rightPadding: 10
                 placeholderText: "5,7"
-                Layout.preferredHeight: text_default_height
+                Layout.preferredHeight: root.text_default_height
                 Layout.preferredWidth: 60
             }
 
             Label {
-                text: "句數"
+                text: trDict["句数"]
                 horizontalAlignment: Text.AlignRight
             }
 
@@ -66,7 +134,7 @@ Window {
                 leftPadding: 10
                 rightPadding: 10
                 placeholderText: "8-9"
-                Layout.preferredHeight: text_default_height
+                Layout.preferredHeight: root.text_default_height
                 Layout.preferredWidth: 60
 
             }
@@ -77,7 +145,7 @@ Window {
             spacing: 8
 
             Label {
-                text: "作者"
+                text: trDict["作者"]
             }
 
             TextField {
@@ -85,13 +153,13 @@ Window {
                 topPadding: 0
                 bottomPadding: 0
                 Layout.fillWidth: true
-                placeholderText: "作者..."
-                Layout.preferredHeight: text_default_height
+                placeholderText: qsTr("白居易")
+                Layout.preferredHeight: root.text_default_height
 
             }
 
             Label {
-                text: "體裁"
+                text: trDict["体裁"]
             }
 
             TextField {
@@ -100,14 +168,14 @@ Window {
                 bottomPadding: 0
                 leftPadding: 10
                 rightPadding: 10
-                placeholderText: "律詩"
-                Layout.preferredHeight: text_default_height
+                placeholderText: qsTr("律诗")
+                Layout.preferredHeight: root.text_default_height
                 Layout.preferredWidth: 60
 
             }
 
             Label {
-                text: "句序"
+                text: trDict["句序"]
             }
 
             TextField {
@@ -117,7 +185,7 @@ Window {
                 leftPadding: 10
                 rightPadding: 10
                 placeholderText: "1,3,5"
-                Layout.preferredHeight: text_default_height
+                Layout.preferredHeight: root.text_default_height
                 Layout.preferredWidth: 60
 
             }
@@ -130,7 +198,7 @@ Window {
             spacing: 8
 
             Label {
-                text: "詩句"
+                text: trDict["诗句"]
             }
 
             TextField {
@@ -138,13 +206,13 @@ Window {
                 topPadding: 0
                 bottomPadding: 0
                 Layout.fillWidth: true
-                placeholderText: "輸入詩句..."
-                Layout.preferredHeight: text_default_height
+                placeholderText: qsTr("山隨平野闊")
+                Layout.preferredHeight: root.text_default_height
 
             }
 
             Label {
-                text: "平仄"
+                text: trDict["平仄"]
             }
 
             TextField {
@@ -152,8 +220,8 @@ Window {
                 topPadding: 0
                 bottomPadding: 0
                 Layout.fillWidth: true
-                placeholderText: "輸入平仄格式..."
-                Layout.preferredHeight: text_default_height
+                placeholderText: qsTr("仄平平仄仄")
+                Layout.preferredHeight: root.text_default_height
 
             }
 
@@ -166,18 +234,26 @@ Window {
                 bottomPadding: 0
                 leftPadding: 0
                 rightPadding: 0
-                Layout.preferredWidth: text_default_height+12
-                Layout.preferredHeight: text_default_height
+                Layout.preferredWidth: root.text_default_height+12
+                Layout.preferredHeight: root.text_default_height
                 onClicked: {
                     // 调用 C++ 搜索逻辑
-                    interf.onQuery(inputJu.text,
+                    interf.query([inputJu.text,
                                  inputPz.text,
                                  inputTitle.text,
                                  inputAuthor.text,
                                  inputYan.text,
                                  inputJushu.text,
                                  inputTicai.text,
-                                 inputJuind.text)
+                                 inputJuind.text],
+                                 [settings.strict_ju.text,
+                                 settings.strict_pz.text,
+                                 settings.strict_title.text,
+                                 settings.strict_author.text,
+                                 false,
+                                 false,
+                                 settings.strict_ticai.text,
+                                 false])
                     // poemManager.query(searchInput.text)
                 }
                 // Layout.preferredWidth: 60
@@ -189,18 +265,19 @@ Window {
         //     spacing: 6
 
         //     RowLayout {
-        //         Label { text: "查詢模式：" }
+        //         Label { text: qsTr("查询模式") }
         //         ComboBox {
         //             id: modeSelect
-        //             model: ["全部", "詩句", "平仄"]
-        //             Layout.preferredHeight: text_default_height
+        //             model: [qsTr("全部"), trDict["诗句"], trDict["平仄"]]
+        //             Layout.preferredHeight: root.text_default_height
         //         }
         //     }
 
         //     ColumnLayout {
-        //         CheckBox { id: opt2; text: "簡繁、異體轉換"; checked: true }
+        //         CheckBox { id: opt2; text: qsTr("繁简、异体转换"); checked: true }
         //     }
         // }
+
 
         // 滚动视图区域
         ScrollView {
@@ -212,13 +289,11 @@ Window {
             ListView {
                 id: listView
                 anchors.fill: parent
-                model: interf.model
+                model: interf.proxyModel
                 spacing: 2
                 clip: true
 
                 delegate: Rectangle {
-                    property string col7str: model.col7
-                    property string col9str: model.col9
                     id: delegateItem
                     width: listView.width
                     height: 60
@@ -229,17 +304,15 @@ Window {
                         id: mouseArea
                         anchors.fill: parent
                         onClicked: {
-                            popup_Poem.author = model.col0
-                            popup_Poem.content = model.col1
-                            popup_Poem.chulv = model.col2
-                            popup_Poem.jushu = model.col3
-                            popup_Poem.yan = model.col4
-                            popup_Poem.title = model.col5
-                            popup_Poem.ticai = model.col6
-                            popup_Poem.ju = model.col7
-                            popup_Poem.juind = model.col8
-                            popup_Poem.pz = model.col9
-                            popup_Poem.open()
+                            interf.searchById(model.col8)
+                            popup_Poem.title    = model.col0
+                            popup_Poem.author   = model.col1
+                            popup_Poem.ju       = model.col2
+                            popup_Poem.yan      = model.col3
+                            popup_Poem.jushu    = model.col4
+                            popup_Poem.ticai    = model.col5
+                            popup_Poem.juind    = model.col6
+                            popup_Poem.pz       = model.col7
                         }
                     }
 
@@ -253,21 +326,27 @@ Window {
                             font.pixelSize: 20
                             font.bold: true
                             text: {
+                                if (!settings.disp_pz)
+                                {
+                                    return model.col2
+                                }
+
                                 var str = ""
-                                for (var i = 0; i < model.col7.length; ++i) {
-                                    var c = model.col7.charAt(i)
-                                    var color = model.col9.charAt(i) === "仄" ? "#C55A11" : "#3B3838"
+                                for (var i = 0; i < model.col2.length; ++i) {
+                                    var c = model.col2.charAt(i)
+                                    var color = model.col7.charAt(i) === "仄" ? "#C55A11" : "#3B3838"
                                     str += "<span style='color:" + color + "'>" + c + "</span>"
                                 }
                                 return str
                             }
+                            // text: listView.c_ju
                             Layout.fillHeight: true
                             Layout.preferredWidth: 140
                             verticalAlignment: Text.AlignVCenter
                         }
 
                         // Text {
-                            // text: model.col7
+                            // text: c_ju
                             // font.pixelSize: 20
                             // font.bold: true
                             // Layout.leftMargin: 10
@@ -286,7 +365,7 @@ Window {
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
                                 Text {
-                                    text: model.col0 + " 《" + model.col5 + "》"
+                                    text: model.col1 + " 《" + model.col0 + "》"
                                     font.pixelSize: 14
                                     font.bold: true
                                     color: "#444444"
@@ -299,7 +378,7 @@ Window {
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
                                 Text {
-                                    text: "體裁：" + model.col6
+                                    text: qsTr("体裁：") + model.col5
                                     font.pixelSize: 14
                                     color: "#444444"
                                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
@@ -307,7 +386,7 @@ Window {
                                     Layout.fillHeight: true
                                 }
                                 Text {
-                                    text: "第" + model.col8 + "句"
+                                    text: "第" + model.col6 + "/" + model.col4 + "句"
                                     font.pixelSize: 14
                                     color: "#444444"
                                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
@@ -327,6 +406,7 @@ Window {
                     }
                 }
             }
+
         }
 
         // 进度条与状态标签
@@ -359,8 +439,8 @@ Window {
                 bottomPadding: 0
                 leftPadding: 0
                 rightPadding: 0
-                Layout.preferredWidth: text_default_height+12
-                Layout.preferredHeight: text_default_height
+                Layout.preferredWidth: root.text_default_height+12
+                Layout.preferredHeight: root.text_default_height
                 onClicked: {
                     popup_Info.open()
                 }
@@ -378,6 +458,7 @@ Window {
                 Layout.preferredWidth: text_default_height+12
                 Layout.preferredHeight: text_default_height
                 onClicked: {
+                    dialog_Settings.open()
                 }
             }
         }
@@ -393,7 +474,6 @@ Window {
 
         // 数据属性
         property string author: ""
-        property string content: ""
         property string chulv: ""
         property string jushu: ""
         property string yan: ""
@@ -402,12 +482,13 @@ Window {
         property string ju: ""
         property string juind: ""
         property string pz: ""
+        property var poem: null
 
         // 富文本内容：将 ju 加粗
         property string richContent: {
             const lines = []
             const regex = /[^，。？！；]+[，。？！；]/g
-            const matches = popup_Poem.content.match(regex) || []
+            const matches = popup_Poem.poem["內容"].match(regex) || []
             const maxGroup = 5
 
             let i = 0
@@ -442,7 +523,6 @@ Window {
             let joined = lines.join("<br/>")
             if (popup_Poem.ju.length === 0) return joined
             return joined.replace(popup_Poem.ju, "<b>" + popup_Poem.ju + "</b>")
-            // return popup_Poem.content
         }
 
         // 自动高度（由 Layout 自动决定）
@@ -458,20 +538,54 @@ Window {
                 font.bold: true
                 horizontalAlignment: Text.AlignHCenter
                 Layout.alignment: Qt.AlignHCenter
-                Layout.preferredWidth: popup_Poem.width - text_default_height
+                Layout.fillWidth: true
                 wrapMode: Text.Wrap
             }
 
-            // 第二部分：富文本，自动换行，限制宽度
-            Text {
-                textFormat: Text.RichText
-                text: popup_Poem.richContent
-                horizontalAlignment: Text.AlignHCenter
+
+            // 可滚动文本区域
+            ScrollView {
+                id: v_poem
+                ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                Layout.maximumHeight: root.height*1/2
+                Layout.fillWidth: true
                 Layout.alignment: Qt.AlignHCenter
-                wrapMode: Text.Wrap
-                font.pixelSize: 16
-                Layout.preferredWidth: popup_Poem.width - text_default_height
+                // 第二部分：富文本，自动换行，限制宽度
+                Text {
+                    textFormat: Text.RichText
+                    text: popup_Poem.richContent
+                    wrapMode: Text.Wrap
+                    font.pixelSize: 16
+                    width: v_poem.availableWidth
+                    horizontalAlignment: Text.AlignHCenter
+                }
             }
+
+            RowLayout {
+                Text {
+                    text: qsTr("体裁：") + popup_Poem.yan + qsTr("言 ")
+                          + popup_Poem.jushu + qsTr("句 ")
+                          + popup_Poem.ticai
+                    rightPadding: 10
+                    font.pixelSize: 14
+                    horizontalAlignment: Text.AlignLeft
+                    Layout.alignment: Qt.AlignRight
+                    Layout.fillWidth: true
+                    wrapMode: Text.Wrap
+                }
+
+                Text {
+                    text: qsTr("　出律度：") + popup_Poem.poem["出律度"]
+                    rightPadding: 10
+                    font.pixelSize: 14
+                    horizontalAlignment: Text.AlignRight
+                    Layout.alignment: Qt.AlignRight
+                    Layout.fillWidth: true
+                    wrapMode: Text.Wrap
+                }
+            }
+
+
         }
     }
 
@@ -489,22 +603,48 @@ Window {
             anchors.margins: 16
             spacing: 12
 
+            Label  {
+                text: qsTr("ⓘ 关于")
+                font.pixelSize: 24
+                color: Material.accent
+                horizontalAlignment: Text.AlignLeft
+                Layout.alignment: Qt.AlignHCenter
+                Layout.fillWidth: true
+                wrapMode: Text.Wrap
+            }
+
             Rectangle {
                 Layout.fillWidth: true
-                height: 1
+                Layout.preferredHeight: 1
                 color: "#cccccc" // 分隔线颜色
             }
 
             Label  {
-                text: "詩句檢索 v0.0.3\n2025.05.22\n\nDrail Ins.\n"
+                text: qsTr("诗句检索 v0.0.3\n2025.05.23\n\nDrail Ins.\n")
                 font.pixelSize: 18
                 horizontalAlignment: Text.AlignHCenter
                 Layout.alignment: Qt.AlignHCenter
                 Layout.fillWidth: true
-                - text_default_height
                 wrapMode: Text.Wrap
             }
         }
+    }
+
+    SettingsDialog {
+        id: dialog_Settings
+        modal: true
+        focus: true
+
+        appInterf: interf
+        appTrDict: trDict
+        appColDict: colDict
+
+        width: parent.width * 4 / 5
+        height: parent.height / 2
+        anchors.centerIn: Overlay.overlay
+
+        appSettings: settings
+
     }
 
     // Drawer {

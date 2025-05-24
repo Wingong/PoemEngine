@@ -5,13 +5,20 @@ project(PoemEngine VERSION 0.0.3 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Quick)
+find_package(Qt6 REQUIRED COMPONENTS LinguistTools)
 
 qt_standard_project_setup(REQUIRES 6.5)
 
 qt_add_executable(appPoemEngine
     main.cpp
-    # resource.qrc
     MANUAL_FINALIZATION
+)
+
+qt_add_translations(appPoemEngine
+    TS_FILES
+        translations/zh_CN.ts
+        translations/zh_MO.ts
+    RESOURCE_PREFIX "/translations"
 )
 
 qt_add_qml_module(appPoemEngine
@@ -19,6 +26,7 @@ qt_add_qml_module(appPoemEngine
     VERSION 1.0
     QML_FILES
         PoemEngineUi/Main.qml
+        PoemEngineUi/SettingsDialog.qml
     SOURCES
         poemmanager.cpp
         poemmanager.h
@@ -26,8 +34,8 @@ qt_add_qml_module(appPoemEngine
         qmlinterface.cpp
     RESOURCES
         CHANGELOG.md
-        # qtquickcontrols2.conf
-        # RESOURCES android/AndroidManifest.xml android/build.gradle android/res/values/libs.xml android/res/xml/qtprovider_paths.xml
+        SOURCES
+        SOURCES juproxymodel.h juproxymodel.cpp
 )
 
 qt_add_resources(appPoemEngine "qtquickcontrols2_conf_resource"
@@ -41,7 +49,9 @@ qt_add_resources(appPoemEngine "resources"
     FILES
         data/qts.csv
         data/ju_tab.csv
+        data/psy.csv
 )
+
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.
@@ -70,8 +80,11 @@ install(TARGETS appPoemEngine
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-add_custom_command(TARGET appPoemEngine POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-        "${CMAKE_BINARY_DIR}/android-build-appPoemEngine/build/outputs/apk/release/android-build-appPoemEngine-release-signed.apk"
-        "${CMAKE_BINARY_DIR}/诗句检索_v${PROJECT_VERSION}.apk"
-)
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_custom_command(TARGET appPoemEngine POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+            "${CMAKE_BINARY_DIR}/android-build-appPoemEngine/build/outputs/apk/release/android-build-appPoemEngine-release-signed.apk"
+            "${CMAKE_BINARY_DIR}/诗句检索_v${PROJECT_VERSION}.apk"
+    )
+endif()
+

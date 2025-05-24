@@ -1,0 +1,93 @@
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
+import Qt.labs.settings
+
+Item {
+    width: 480
+    height: 640
+    // title: qsTr("设置")
+
+    property var trDict: {
+        "诗句": qsTr("诗句"),
+        "平仄": qsTr("平仄"),
+        "诗题": qsTr("诗题"),
+        "作者": qsTr("作者"),
+        "言数": qsTr("言数"),
+        "句数": qsTr("句数"),
+        "体裁": qsTr("体裁"),
+        "句序": qsTr("句序")
+    }
+
+    property var keyList: [
+        "诗句",
+        "平仄",
+        "诗题",
+        "作者",
+        "言数",
+        "句数",
+        "体裁",
+        "句序"
+    ]
+    // standardButtons: Dialog.Ok | Dialog.Cancel
+
+    // onAccepted: {
+    //     // 处理“确定”操作，例如保存设置
+    //     console.log(qsTr("设置已保存"))
+    // }
+    // onRejected: {
+    //     // 处理“取消”操作
+    //     console.log(qsTr("设置已取消"))
+    // }
+
+    // Settings {
+    //     id: appSettings
+    //     category: "UserPreferences"
+    //     property string languageCode    : ""
+    //     property int    theme           : 0
+    //     property bool   strict_ju       : false
+    //     property bool   strict_pz       : false
+    //     property bool   strict_title    : true
+    //     property bool   strict_author   : true
+    //     property bool   strict_ticai    : true
+    //     // property
+    // }
+
+    ListModel {
+        id: sortOptionsModel
+        ListElement { text: qsTr("诗句"); value: 0 }
+        ListElement { text: qsTr("平仄"); value: 1 }
+        ListElement { text: qsTr("诗题"); value: 2 }
+        ListElement { text: qsTr("作者"); value: 3 }
+        ListElement { text: qsTr("言数"); value: 4 }
+        ListElement { text: qsTr("句数"); value: 5 }
+        ListElement { text: qsTr("体裁"); value: 6 }
+        ListElement { text: qsTr("句序"); value: 7 }
+    }
+
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: 16
+        spacing: 12
+
+        ComboBox {
+            id: languageSelector
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            model: [qsTr("简体中文"), qsTr("繁體中文"), qsTr("English")]
+            currentIndex: 0
+        }
+
+        CheckBox {
+            id: enableNotifications
+            text: qsTr("启用通知")
+            checked: true
+        }
+
+        CheckBox {
+            id: darkMode
+            text: qsTr("启用深色模式")
+            checked: false
+        }
+    }
+}

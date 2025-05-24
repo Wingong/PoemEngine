@@ -44,6 +44,7 @@
 - Qml 和外部连接，需要暴露一个 C++ 类给它。 Qml 中可以直接访问暴露类的 `Q_INVOKABLE` 方法和 `Q_PROPERTY` 属性。
 - 尝试用 Qt Design Studio 制作 Qml 。这玩意生成的 Qml 必须手动复制到 Qt Quick 工程里……而且它默认的开头是 ApplicationWindow ，但新版 Qt Quick 只支持 Window 。
     - 界面用着倒还行。。。
+- 刚开始文本框下方裁剪，上方超高，设啥都没用。最后发现要设`topPadding`和`bottomPadding`。
   
 #### 表格
 - 最后用的 ScrollView + ListView + 定制 Delegate 的方法。
@@ -122,3 +123,73 @@ Text {
 
 ### 吹牛
 - 老婆周五答辩，周四了。这次确实成就感拉满，但是正事耽误了，天天晚上一点多睡觉。呜呜呜。
+
+
+## v0.0.3 - 增加设置、翻译等功能
+
+### 增加繁简体支持、Qt本地化
+- 这次玩明白了。
+    1. 在需要翻译的地方，C++文件用`tr("")`，Qml文件用`qsTr("")`框柱要翻译的内容；
+    2. 先用`lupdate`生成 .ts 文件，加入工程中；
+    ```CMakeLists
+    qt_add_translations(appPoemEngine
+        TS_FILES
+            translations/zh_CN.ts
+            translations/zh_MO.ts
+        RESOURCE_PREFIX "/translations"
+    )
+    ```
+    3. 用Qt语言家打开，设置翻译；
+    4. 编译的时候会自动编译到工程中，资源路径为`:/{$RESOURCE_PREFIX}/xxx.qm`。
+
+### 增加设置功能
+- 完成设置弹窗的大多数功能，显示如同预期，但是折腾了很久。最后用的方法是， SettingsDialog.qml 根节点为`Dialog`，在 Qt Design Studio 中制作时写成`Window`画图，编译的时候改成`Dialog`。
+- 玩明白了响应式属性绑定。这种绑定是单向的，绑定对象更新的时候，被绑定对象也会更新，如：
+    ```Qml
+    // Set.qml
+    Dialog {
+        property var appSettings: null
+        CheckBox {
+            checked: appSettings.disp_pz
+            onCheckedChanged: appSettings.disp_pz = checked
+        }
+    }
+    // Main.qml
+    Window {
+        Settings {
+            id: settings
+            property bool disp_pz : true
+        }
+        Text {
+            text: "123"
+            color : settings.disp_pz ? "#666" : "#000"
+        }
+        Set {
+            appSettings: settings
+        }
+    }
+    ```
+    - 这样主界面的`settings`是能成功传入子界面的，color也会自动更新，很好用。如果需要反向绑定，就要在比如`onClicked`事件中设置。这种`onSignal`是系统自动生成的，不用额外设计。
+- GPT 帮我写了动态设置平仄颜色的函数，好用。现在在设置中点选平仄分色，可以设置主界面平仄是否同色显示。
+
+### 重构数据加载和检索系统，实现排序功能
+- 大幅修改各类中诗歌加载、检索、排序的接口。
+- 现在诗歌加载时，就把所有诗的内容分块放到`QStandardItemModel`中，而不是每次搜索新建一个模型。
+    - 分块（一次1000）是为了避免主界面一次写入过多数据卡顿。
+- 筛选、排序功能通过自定义代理类`JuProxyModel`实现，实现`lessThan`和`filterAcceptsRow`方法，具体内容不赘述。代理类暴露给Qml，Qml不访问原模型。
+    - 自定义模型要在`main`函数中注册才能暴露给Qml。
+- 筛选时，向子线程要求筛选选项，现在分为`values`和`stricts`两个数组，分别代表键和是否精确搜索。
+    - 子线程返回符合要求的行号，代理模型直接存入，加速筛选和显示。
+    - 这部分还有问题，精确搜索部分尚未成功。
+- 排序可以设置三种排序字段和升降序。后面的字段不能选前面的重复值。
+    - 有Bug，第三个字段有时候点选会空。
+
+### 诗歌展示界面调整
+- 增加体裁、出律度信息。
+
+### 增加平水韵文件
+- `:/data/psy.csv`，以后得用。
+
+### 吹牛
+- 老婆答辩顺利！特别幸福。我写了假文化人诗。
+- 正事没干，要死了。

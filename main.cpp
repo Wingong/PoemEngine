@@ -1,29 +1,56 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QDir>
 
 #include "poemmanager.h"
 #include "qmlinterface.h"
 
+void listResources(const QString &path, int depth = 0) {
+    QDir dir(path);
+    if (!dir.exists()) {
+        qWarning() << "路径不存在：" << path;
+        return;
+    }
+
+    QString indent(depth * 2, ' ');
+
+    // 输出目录中的文件
+    QFileInfoList entries = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries);
+    for (const QFileInfo &entry : entries) {
+        qCritical() << indent << (entry.isDir() ? "[Dir] " : "[File]") << entry.filePath();
+        if (entry.isDir()) {
+            listResources(entry.filePath(), depth + 1);
+        }
+    }
+}
+
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+    QQmlApplicationEngine engine;
 
+    // 子线程诗歌检索器
     QThread *thread(new QThread);
     PoemManager *manager(new PoemManager);
     manager->moveToThread(thread);
     thread->start();
 
-    QmlInterface *interf = new QmlInterface;
+    // 接口类
+    QmlInterface *interf = new QmlInterface(app, engine);
 
     QObject::connect(manager, &PoemManager::progSet, interf, &QmlInterface::onFormat);
-    QObject::connect(manager, &PoemManager::progEnd, interf, &QmlInterface::onEnd);
+    QObject::connect(manager, &PoemManager::dataHeaderLoaded, interf, &QmlInterface::onTableFirst);
+    QObject::connect(manager, &PoemManager::dataLoaded, interf, &QmlInterface::onTable);
 
-    QObject::connect(interf, &QmlInterface::query, manager, &PoemManager::onQuery);
-    QObject::connect(manager, &PoemManager::searchEnd, interf, &QmlInterface::onTable);
+    QObject::connect(interf, &QmlInterface::querySent, manager, &PoemManager::onQuery);
+    QObject::connect(interf, &QmlInterface::searchSent, manager, &PoemManager::onSearchById);
+    QObject::connect(manager, &PoemManager::queryEnd, interf, &QmlInterface::onFilter);
+    QObject::connect(manager, &PoemManager::searchEnd, interf, &QmlInterface::onPoemSearched);
 
-    QMetaObject::invokeMethod(manager, &PoemManager::load, QString(":/data/qts.csv"), QString(":/data/ju_tab.csv"));
-    QQmlApplicationEngine engine;
+
+    qmlRegisterType<JuProxyModel>("JuProxyModel", 1, 0, "JuProxyModel");
+
     engine.rootContext()->setContextProperty("interf", interf);
     QObject::connect(
         &engine,
@@ -33,5 +60,8 @@ int main(int argc, char *argv[])
         Qt::QueuedConnection);
     engine.loadFromModule("PoemEngine", "Main");
 
+
+
+    QMetaObject::invokeMethod(manager, &PoemManager::load, QString(":/data/qts.csv"), QString(":/data/ju_tab.csv"));
     return app.exec();
 }

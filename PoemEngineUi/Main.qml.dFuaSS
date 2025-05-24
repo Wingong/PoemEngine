@@ -1,0 +1,573 @@
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
+import QtQuick.Controls.Material 2.15
+
+Window {
+    id: root
+    width: 480
+    height: 640
+
+    property int text_default_height: 32
+
+    Material.theme: Material.System
+    Material.accent: Material.LightBlue
+
+    visible: true
+    title: qsTr("诗句检索")
+
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: 16
+        spacing: 12
+
+        // 顶部搜索栏
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 8
+
+            Label {
+                text: settings.trDict["诗题"]
+            }
+
+            TextField {
+                id: inputTitle
+                topPadding: 0
+                bottomPadding: 0
+                Layout.fillWidth: true
+                placeholderText: qsTr("诗题...")
+                Layout.preferredHeight: root.text_default_height
+            }
+
+            Label {
+                text: settings.trDict["言数"]
+            }
+
+            TextField {
+                id: inputYan
+                topPadding: 0
+                bottomPadding: 0
+                leftPadding: 10
+                rightPadding: 10
+                placeholderText: "5,7"
+                Layout.preferredHeight: root.text_default_height
+                Layout.preferredWidth: 60
+            }
+
+            Label {
+                text: settings.trDict["句数"]
+                horizontalAlignment: Text.AlignRight
+            }
+
+            TextField {
+                id: inputJushu
+                topPadding: 0
+                bottomPadding: 0
+                leftPadding: 10
+                rightPadding: 10
+                placeholderText: "8-9"
+                Layout.preferredHeight: root.text_default_height
+                Layout.preferredWidth: 60
+
+            }
+        }
+        // 顶部搜索栏
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 8
+
+            Label {
+                text: settings.trDict["作者"]
+            }
+
+            TextField {
+                id: inputAuthor
+                topPadding: 0
+                bottomPadding: 0
+                Layout.fillWidth: true
+                placeholderText: qsTr("作者...")
+                Layout.preferredHeight: root.text_default_height
+
+            }
+
+            Label {
+                text: settings.trDict["体裁"]
+            }
+
+            TextField {
+                id: inputTicai
+                topPadding: 0
+                bottomPadding: 0
+                leftPadding: 10
+                rightPadding: 10
+                placeholderText: qsTr("律诗")
+                Layout.preferredHeight: root.text_default_height
+                Layout.preferredWidth: 60
+
+            }
+
+            Label {
+                text: settings.trDict["句序"]
+            }
+
+            TextField {
+                id: inputJuind
+                topPadding: 0
+                bottomPadding: 0
+                leftPadding: 10
+                rightPadding: 10
+                placeholderText: "1,3,5"
+                Layout.preferredHeight: root.text_default_height
+                Layout.preferredWidth: 60
+
+            }
+
+        }
+
+        // 顶部搜索栏
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 8
+
+            Label {
+                text: settings.trDict["诗句"]
+            }
+
+            TextField {
+                id: inputJu
+                topPadding: 0
+                bottomPadding: 0
+                Layout.fillWidth: true
+                placeholderText: qsTr("输入诗句...")
+                Layout.preferredHeight: root.text_default_height
+
+            }
+
+            Label {
+                text: settings.trDict["平仄"]
+            }
+
+            TextField {
+                id: inputPz
+                topPadding: 0
+                bottomPadding: 0
+                Layout.fillWidth: true
+                placeholderText: qsTr("输入平仄格式...")
+                Layout.preferredHeight: root.text_default_height
+
+            }
+
+            Button {
+                flat: true
+                text: "🔍"
+                font.family: "Noto Emoji"
+                font.pixelSize: 23
+                topPadding: 0
+                bottomPadding: 0
+                leftPadding: 0
+                rightPadding: 0
+                Layout.preferredWidth: root.text_default_height+12
+                Layout.preferredHeight: root.text_default_height
+                onClicked: {
+                    // 调用 C++ 搜索逻辑
+                    interf.onQuery(inputJu.text,
+                                 inputPz.text,
+                                 inputTitle.text,
+                                 inputAuthor.text,
+                                 inputYan.text,
+                                 inputJushu.text,
+                                 inputTicai.text,
+                                 inputJuind.text)
+                    // poemManager.query(searchInput.text)
+                }
+                // Layout.preferredWidth: 60
+            }
+        }
+
+        // 模式 + 选项区
+        // ColumnLayout {
+        //     spacing: 6
+
+        //     RowLayout {
+        //         Label { text: qsTr("查询模式") }
+        //         ComboBox {
+        //             id: modeSelect
+        //             model: [qsTr("全部"), settings.trDict["诗句"], settings.trDict["平仄"]]
+        //             Layout.preferredHeight: root.text_default_height
+        //         }
+        //     }
+
+        //     ColumnLayout {
+        //         CheckBox { id: opt2; text: qsTr("繁简、异体转换"); checked: true }
+        //     }
+        // }
+
+
+        // 滚动视图区域
+        ScrollView {
+            id: scrollView
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            ScrollBar.vertical.policy: ScrollBar.AlwaysOn  // 确保始终显示滚动条
+
+            ListView {
+                id: listView
+                anchors.fill: parent
+                model: interf.proxyModel
+                spacing: 2
+                clip: true
+
+                delegate: Rectangle {
+                    property string col7str: model.col7
+                    property string col9str: model.col9
+                    id: delegateItem
+                    width: listView.width
+                    height: 60
+                    color: mouseArea.pressed ? "#e0e0e0" : "white"
+
+                    // 点击效果
+                    MouseArea {
+                        id: mouseArea
+                        anchors.fill: parent
+                        onClicked: {
+                            popup_Poem.title    = model.col0
+                            popup_Poem.author   = model.col1
+                            popup_Poem.ju       = model.col7
+                            popup_Poem.content  = model.col1
+                            popup_Poem.chulv    = model.col2
+                            popup_Poem.jushu    = model.col3
+                            popup_Poem.yan      = model.col4
+                            popup_Poem.ticai    = model.col6
+                            popup_Poem.juind    = model.col8
+                            popup_Poem.pz       = model.col9
+                            popup_Poem.open()
+                        }
+                    }
+
+                    RowLayout {
+                        anchors.fill: parent
+                        spacing: 10
+
+                        // 左侧大字体
+                        Text {
+                            textFormat: Text.RichText
+                            font.pixelSize: 20
+                            font.bold: true
+                            text: {
+                                var str = ""
+                                for (var i = 0; i < model.col7.length; ++i) {
+                                    var c = model.col7.charAt(i)
+                                    var color = model.col9.charAt(i) === "仄" ? "#C55A11" : "#3B3838"
+                                    str += "<span style='color:" + color + "'>" + c + "</span>"
+                                }
+                                return str
+                            }
+                            Layout.fillHeight: true
+                            Layout.preferredWidth: 140
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        // Text {
+                            // text: model.col7
+                            // font.pixelSize: 20
+                            // font.bold: true
+                            // Layout.leftMargin: 10
+                            // Layout.fillHeight: true
+                            // Layout.preferredWidth: 140
+                            // verticalAlignment: Text.AlignVCenter
+                        // }
+
+                        // 右侧上下布局
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            spacing: 2
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                Text {
+                                    text: model.col0 + " 《" + model.col5 + "》"
+                                    font.pixelSize: 14
+                                    font.bold: true
+                                    color: "#444444"
+                                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                                    Layout.fillHeight: true
+                                }
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                Text {
+                                    text: qsTr("体裁：") + model.col6
+                                    font.pixelSize: 14
+                                    color: "#444444"
+                                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                                    Layout.preferredWidth: 80
+                                    Layout.fillHeight: true
+                                }
+                                Text {
+                                    text: "第" + model.col8 + "句"
+                                    font.pixelSize: 14
+                                    color: "#444444"
+                                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+                                }
+                            }
+                        }
+                    }
+
+                    // 分割线
+                    Rectangle {
+                        width: parent.width
+                        height: 1
+                        color: "#eee"
+                        anchors.bottom: parent.bottom
+                    }
+                }
+            }
+
+        }
+
+        // 进度条与状态标签
+        RowLayout {
+            Layout.fillWidth: true
+            // visible: bar.visible
+
+            // ProgressBar {
+            //     id: bar
+            //     Layout.fillWidth: true
+            //     value: 0.0
+            // }
+
+            Label {
+                id: lab
+                text: interf.labText
+                horizontalAlignment: Text.AlignRight
+            }
+
+            Item {
+                Layout.fillWidth: true
+            }
+
+            Button {
+                flat: true
+                text: "ℹ️"
+                font.family: "Noto Emoji"
+                font.pixelSize: 23
+                topPadding: 0
+                bottomPadding: 0
+                leftPadding: 0
+                rightPadding: 0
+                Layout.preferredWidth: root.text_default_height+12
+                Layout.preferredHeight: root.text_default_height
+                onClicked: {
+                    popup_Info.open()
+                }
+            }
+
+            Button {
+                flat: true
+                text: "⚙"
+                font.family: "Noto Emoji"
+                font.pixelSize: 25
+                topPadding: 0
+                bottomPadding: 0
+                leftPadding: 0
+                rightPadding: 0
+                Layout.preferredWidth: text_default_height+12
+                Layout.preferredHeight: text_default_height
+                onClicked: {
+                    settings.open()
+                }
+            }
+        }
+    }
+
+    Popup {
+        id: popup_Poem
+        modal: true
+        focus: true
+
+        width: parent.width * 4 / 5
+        anchors.centerIn: Overlay.overlay  // ✅ 始终居中
+
+        // 数据属性
+        property string author: ""
+        property string content: ""
+        property string chulv: ""
+        property string jushu: ""
+        property string yan: ""
+        property string title: ""
+        property string ticai: ""
+        property string ju: ""
+        property string juind: ""
+        property string pz: ""
+
+        // 富文本内容：将 ju 加粗
+        property string richContent: {
+            const lines = []
+            const regex = /[^，。？！；]+[，。？！；]/g
+            const matches = popup_Poem.content.match(regex) || []
+            const maxGroup = 5
+
+            let i = 0
+            while (i < matches.length) {
+                let current = matches[i]
+                const endChar = current.slice(-1)
+
+                // Case A: 当前是逗号，下一句不是逗号结尾 → 合并 i 和 i+1
+                if (endChar === "，" && i + 1 < matches.length && matches[i + 1].slice(-1) !== "，") {
+                    current += matches[i + 1]
+                    i += 2
+                }
+                // Case B: 连续句非句号结尾，最多合并5句，直到句号
+                else {
+                    let group = current
+                    let j = i + 1
+                    while (j < matches.length && j - i < maxGroup && matches[j - 1].slice(-1) !== "。" && matches[j].slice(-1) !== "。") {
+                        group += matches[j]
+                        j += 1
+                    }
+                    // 检查是否最后一句是句号结尾
+                    if (j < matches.length && matches[j].slice(-1) === "。") {
+                        group += matches[j]
+                        j += 1
+                    }
+                    current = group
+                    i = j
+                }
+
+                lines.push(current)
+            }
+            let joined = lines.join("<br/>")
+            if (popup_Poem.ju.length === 0) return joined
+            return joined.replace(popup_Poem.ju, "<b>" + popup_Poem.ju + "</b>")
+            // return popup_Poem.content
+        }
+
+        // 自动高度（由 Layout 自动决定）
+        contentItem: ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 16
+            spacing: 12
+
+            // 第一部分：标题，居中显示
+            Text {
+                text: popup_Poem.author + " 《" + popup_Poem.title + "》"
+                font.pixelSize: 14
+                font.bold: true
+                horizontalAlignment: Text.AlignHCenter
+                Layout.alignment: Qt.AlignHCenter
+                Layout.preferredWidth: popup_Poem.width - root.text_default_height
+                wrapMode: Text.Wrap
+            }
+
+
+            // 可滚动文本区域
+            ScrollView {
+                id: v_poem
+                ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                Layout.maximumHeight: parent.parent.height*4/5
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignHCenter
+                // 第二部分：富文本，自动换行，限制宽度
+                Text {
+                    textFormat: Text.RichText
+                    text: popup_Poem.richContent
+                    wrapMode: Text.Wrap
+                    font.pixelSize: 16
+                    width: v_poem.availableWidth
+                    horizontalAlignment: Text.AlignHCenter
+                }
+            }
+        }
+    }
+
+    Popup {
+        id: popup_Info
+        modal: true
+        focus: true
+
+        width: parent.width * 2 / 3
+        anchors.centerIn: Overlay.overlay  // ✅ 始终居中
+
+        // 自动高度（由 Layout 自动决定）
+        contentItem: ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 16
+            spacing: 12
+
+            Label  {
+                text: qsTr("ⓘ 关于")
+                font.pixelSize: 24
+                color: Material.accent
+                horizontalAlignment: Text.AlignLeft
+                Layout.alignment: Qt.AlignHCenter
+                Layout.fillWidth: true
+                wrapMode: Text.Wrap
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 1
+                color: "#cccccc" // 分隔线颜色
+            }
+
+            Label  {
+                text: qsTr("诗句检索 v0.0.3\n2025.05.22\n\nDrail Ins.\n")
+                font.pixelSize: 18
+                horizontalAlignment: Text.AlignHCenter
+                Layout.alignment: Qt.AlignHCenter
+                Layout.fillWidth: true
+                wrapMode: Text.Wrap
+            }
+        }
+    }
+
+    SettingsDialog {
+        id: settings
+        modal: true
+        focus: true
+        interf: interf
+
+        width: parent.width * 4 / 5
+        height: parent.height / 2
+        anchors.centerIn: Overlay.overlay
+
+        // SettingsDialog {
+        //     anchors.fill: parent
+        //     id: settings
+        // }
+    }
+
+    // Drawer {
+    //     id: drawer
+    //     width: root.width * 0.33
+    //     height: root.height
+
+    //     Column {
+    //         anchors.fill: parent
+
+    //         ItemDelegate {
+    //             text: qsTr("Page 1")
+    //             width: parent.width
+    //             onClicked: {
+    //                 stackView.push("Screen01.ui.qml")
+    //                 drawer.close()
+    //             }
+    //         }
+    //         ItemDelegate {
+    //             text: qsTr("Page 2")
+    //             width: parent.width
+    //             onClicked: {
+    //                 stackView.push("Screen02.ui.qml")
+    //                 drawer.close()
+    //             }
+    //         }
+    //     }
+    // }
+}
+
