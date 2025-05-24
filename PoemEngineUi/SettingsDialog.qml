@@ -253,14 +253,6 @@ Dialog {
         RowLayout{
             spacing: 0
             CheckBox {
-                id: cbx_title
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                text: appTrDict["诗题"]
-                checked: appSettings.strict_title
-                onCheckedChanged: appSettings.strict_title = checked
-            }
-            CheckBox {
                 id: cbx_author
                 Layout.fillWidth: true
                 Layout.fillHeight: true

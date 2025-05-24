@@ -11,6 +11,16 @@ PoemManager::PoemManager(QObject *parent)
 {
 }
 
+QStringList PoemManager::splitString(const QString &str)
+{
+    static QRegularExpression rSep("[,，; \t]+");
+
+    auto lst = str.split(rSep);
+    lst = QSet<QString>(lst.begin(), lst.end()).values();
+    lst.removeAll("");
+    return lst;
+}
+
 QStringList PoemManager::splitNums(const QString &str)
 {
     static QRegularExpression rMinus("^(\\d+)\\s*-\\s*(\\d+)$"), rSep("[,，; \t]+");
@@ -178,14 +188,6 @@ void PoemManager::load(const QString &qts_path, const QString &jubiao_path)
 
 void PoemManager::onQuery(const QVariantList &values, const QVariantList &stricts)
 {
-// ju,
-// pz,
-// title,
-// author
-// yan,
-// shu,
-// ticai,
-// index)
     QString ju      = (values.size() > 0) ? values[0].toString() : "";
     QString pz      = (values.size() > 1) ? values[1].toString() : "";
     QString title   = (values.size() > 2) ? values[2].toString() : "";
@@ -206,110 +208,119 @@ void PoemManager::onQuery(const QVariantList &values, const QVariantList &strict
 
     emit progSet(tr("检索中……"), 0);
 
-    static QRegularExpression rSep("[,，; \t]+");
-
-    QMap<QString, QList<int>> jumap_search;
+    QMap<QString, QSet<int>> jumap_search;
 
     auto yans = splitNums(yan);
     auto shus = splitNums(shu);
-
-    auto ticais = ticai.split(rSep);
-    ticais = QSet<QString>(ticais.begin(), ticais.end()).values();
-    ticais.removeAll("");
     auto indexes = splitNums(index);
+
+    auto authors = splitString(author);
+    auto pzs = splitString(pz);
+    auto ticais = splitString(ticai);
+
 
     if(ju != "")
     {
+        jumap_search["詩句"].clear();
         if(strict_ju)
         {
             for(auto const &[key, val] : to_jubiao["詩句"].toStdMap())
                 if(key == ju)
-                    jumap_search["詩句"] += val;
+                    jumap_search["詩句"] += QSet<int>(val.begin(), val.end());
         }
         else
         {
             for(auto const &[key, val] : to_jubiao["詩句"].toStdMap())
                 if(key.contains(ju))
-                    jumap_search["詩句"] += val;
+                    jumap_search["詩句"] += QSet<int>(val.begin(), val.end());
         }
     }
 
-    if(pz != "")
+    if(!pzs.isEmpty())
     {
+        jumap_search["平仄"].clear();
         if(strict_pz)
         {
-            for(auto const &[key, val] : to_jubiao["平仄"].toStdMap())
+            for(auto &pz : pzs)
             {
-                // if(key.contains("通") || key.contains("？"))
-                //     continue;
-
-                if(key.size() != pz.size())
-                    continue;
-
-                bool match = false;
-                for(int i = 0; i < key.size(); i ++)
+                for(auto const &[key, val] : to_jubiao["平仄"].toStdMap())
                 {
-                    if(key[i] != pz[i] && pz[i] != "通")
+                    // if(key.contains("通") || key.contains("？"))
+                    //     continue;
+
+                    if(key.size() != pz.size())
+                        continue;
+
+                    bool notmatch = false;
+                    for(int i = 0; i < key.size(); i ++)
                     {
-                        match = true;
-                        break;
+                        if(key[i] != pz[i] && pz[i] != "通")
+                        {
+                            notmatch = true;
+                            break;
+                        }
                     }
+                    if(!notmatch)
+                        jumap_search["平仄"] += QSet<int>(val.begin(), val.end());
                 }
-                if(!match)
-                    jumap_search["平仄"] += val;
             }
         }
         else
         {
-            for(auto const &[key, val] : to_jubiao["平仄"].toStdMap())
+            for(auto &pz : pzs)
             {
-                if(key.size() != pz.size())
-                    continue;
-
-                bool match = false;
-                for(int i = 0; i < key.size(); i ++)
+                for(auto const &[key, val] : to_jubiao["平仄"].toStdMap())
                 {
-                    if(key[i] != pz[i] && pz[i] != "通")
+                    if(key.size() != pz.size())
+                        continue;
+
+                    bool notmatch = false;
+                    for(int i = 0; i < key.size(); i ++)
                     {
-                        match = true;
-                        break;
+                        if(key[i] != pz[i] && pz[i] != "通" && key[i] != "通")
+                        {
+                            notmatch = true;
+                            break;
+                        }
                     }
+                    if(!notmatch)
+                        jumap_search["平仄"] += QSet<int>(val.begin(), val.end());
                 }
-                if(!match)
-                    jumap_search["平仄"] += val;
             }
         }
     }
 
-    if(index != "")
+    if(!indexes.isEmpty())
     {
-        auto indexes = splitNums(index);
+        jumap_search["句序"].clear();
         for(auto const &[key, val] : to_jubiao["句序"].toStdMap())
             for(auto &index : indexes)
                 if(key == index)
-                    jumap_search["句序"] += val;
+                    jumap_search["句序"] += QSet<int>(val.begin(), val.end());
     }
 
     QSet<int> juSet;
-    bool begin = false;
 
-    for(auto &lst : jumap_search)
+    bool empty = false;
+    for(auto &[key, val] : jumap_search.toStdMap())
     {
-        if(!begin)
+        empty = true;
+        if(!val.isEmpty())
         {
-            juSet = QSet<int>(lst.begin(), lst.end());
-            begin = true;
-        }
-        else
-        {
-            juSet.intersect(QSet<int>(lst.begin(), lst.end()));
+            empty = false;
+            break;
         }
     }
 
-    if(juSet.empty())
+    if(!empty)
     {
         for(int i=0; i<jubiao.size(); i++)
             juSet.insert(i);
+    }
+
+    for(auto &set : jumap_search)
+    {
+        juSet.intersect(set);
     }
 
     QList<int> lines;
@@ -324,9 +335,24 @@ void PoemManager::onQuery(const QVariantList &values, const QVariantList &strict
             continue;
         }
 
-        if(author != "" && poem[qts_header["作者"]] != author)
+        if(!authors.isEmpty())
         {
-            continue;
+            bool cont = false;
+            for(auto &author : authors)
+            {
+                if(strict_author && poem[qts_header["作者"]] != author)
+                {
+                    cont = true;
+                    break;
+                }
+                else if(!strict_author && !poem[qts_header["作者"]].contains(author))
+                {
+                    cont = true;
+                    break;
+                }
+            }
+            if(cont)
+                continue;
         }
 
         if(!yans.empty() && !yans.contains(poem[qts_header["言數"]]))
@@ -339,11 +365,25 @@ void PoemManager::onQuery(const QVariantList &values, const QVariantList &strict
             continue;
         }
 
-        if(!ticais.empty() && !ticais.contains(poem[qts_header["體裁"]]))
+        if(!ticais.isEmpty())
         {
-            continue;
+            bool cont = false;
+            for(auto &ticai : ticais)
+            {
+                if(strict_ticai && poem[qts_header["體裁"]] != ticai)
+                {
+                    cont = true;
+                    break;
+                }
+                else if(!strict_ticai && !poem[qts_header["體裁"]].contains(ticai))
+                {
+                    cont = true;
+                    break;
+                }
+            }
+            if(cont)
+                continue;
         }
-
         lines.append(index);
     }
 

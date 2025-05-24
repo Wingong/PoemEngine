@@ -10,7 +10,7 @@ class PoemManager : public QObject
 public:
     explicit PoemManager(QObject *parent = nullptr);
     QStringList splitNums(const QString &str);
-
+    QStringList splitString(const QString &str);
 public slots:
     void load(const QString &qts_path = "://data/qts.csv", const QString &jubiao_path = "://data/ju_tab.csv");
 

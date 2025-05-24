@@ -1,0 +1,16 @@
+Third-Party Libraries Used in PoemEngine:
+
+1. Qt 6.8.1
+   - License: GNU Lesser General Public License v3 (LGPLv3)
+   - Source: https://www.qt.io/
+   - Note: Qt is licensed under the LGPLv3, which allows dynamic linking in proprietary applications provided certain conditions are met. For more details, see: https://doc.qt.io/qt-6/lgpl.html
+
+2. chinese-poetry
+   - License: MIT License
+   - Source: https://github.com/chinese-poetry/chinese-poetry.git
+   - Note: MIT License permits reuse within proprietary software provided that all copies of the licensed software include a copy of the MIT License terms and the copyright notice.
+
+3. cc-visualize
+   - License: MIT License
+   - Source: https://github.com/garywill/cc-visualize.git
+   - Note: MIT License permits reuse within proprietary software provided that all copies of the licensed software include a copy of the MIT License terms and the copyright notice.

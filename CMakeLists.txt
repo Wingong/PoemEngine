@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(PoemEngine VERSION 0.0.3 LANGUAGES CXX)
+project(PoemEngine VERSION 0.0.4 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -26,16 +26,20 @@ qt_add_qml_module(appPoemEngine
     VERSION 1.0
     QML_FILES
         PoemEngineUi/Main.qml
+        PoemEngineUi/PopupInfo.qml
+        PoemEngineUi/PopupPoem.qml
         PoemEngineUi/SettingsDialog.qml
     SOURCES
         poemmanager.cpp
         poemmanager.h
-        qmlinterface.h
         qmlinterface.cpp
+        qmlinterface.h
+        juproxymodel.cpp
+        juproxymodel.h
     RESOURCES
         CHANGELOG.md
-        SOURCES
-        SOURCES juproxymodel.h juproxymodel.cpp
+        LICENSE.md
+        THIRD_PARTY_LICENSES.txt
 )
 
 qt_add_resources(appPoemEngine "qtquickcontrols2_conf_resource"

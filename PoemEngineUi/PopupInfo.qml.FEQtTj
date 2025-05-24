@@ -1,0 +1,70 @@
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
+
+Popup {
+    id: root
+    width: 200
+    height: 300
+
+
+    // 自动高度（由 Layout 自动决定）
+    contentItem: ColumnLayout {
+        id: rootLayout
+        anchors.fill: parent
+        spacing: 12
+
+        Label  {
+            text: qsTr("ⓘ 关于")
+            font.pixelSize: 24
+            color: Material.accent
+            horizontalAlignment: Text.AlignLeft
+            Layout.alignment: Qt.AlignHCenter
+            Layout.fillWidth: true
+            wrapMode: Text.Wrap
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 1
+            color: "#cccccc" // 分隔线颜色
+        }
+
+        //         Label {
+        //             text: "输入各项参数，输出《全唐诗》中符合条件的所有诗句。"
+        //             wrapMode: Text.Wrap
+        //             width: 200
+        //         }
+
+        ScrollView {
+            Layout.fillHeight: true
+
+            // Layout.preferredWidth: rootLayout.width-10
+
+            ScrollBar.vertical.policy: ScrollBar.AlwaysOn
+            ScrollBar.vertical.interactive: true
+
+            ColumnLayout {
+                anchors.fill: parent
+
+                Label  {
+                    text: qsTr("诗句检索 v0.0.4\n2025.05.24\n\nDrail Ins.\n")
+                    font.pixelSize: 18
+                    horizontalAlignment: Text.AlignHCenter
+                    Layout.alignment: Qt.AlignHCenter
+                    wrapMode: Text.Wrap
+                    Layout.fillWidth: true
+                }
+
+                Repeater {
+                    model: 20
+                    delegate: Text {
+                        text: "输入各项参数，输出《全唐诗》中符合条件的所有诗句。"
+                        wrapMode: Text.Wrap
+                        Layout.maximumWidth: rootLayout.width - 50
+                    }
+                }
+            }
+        }
+    }
+}
