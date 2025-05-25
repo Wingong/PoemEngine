@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(PoemEngine VERSION 0.0.4 LANGUAGES CXX)
+project(PoemEngine VERSION 0.0.5 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -88,7 +88,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
     add_custom_command(TARGET appPoemEngine POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
             "${CMAKE_BINARY_DIR}/android-build-appPoemEngine/build/outputs/apk/release/android-build-appPoemEngine-release-signed.apk"
-            "${CMAKE_BINARY_DIR}/诗句检索_v${PROJECT_VERSION}.apk"
+            "${CMAKE_BINARY_DIR}/PoemEngine_v${PROJECT_VERSION}.apk"
     )
 endif()
 

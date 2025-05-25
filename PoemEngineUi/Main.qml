@@ -322,33 +322,87 @@ Window {
                         spacing: 10
 
                         // 左侧大字体
-                        Text {
-                            textFormat: Text.RichText
-                            font.pixelSize: 20
-                            font.bold: true
-                            text: {
-                                if (!settings.disp_pz)
-                                {
-                                    return model.col2
-                                }
-
-                                var str = ""
-                                for (var i = 0; i < model.col2.length; ++i) {
-                                    var c = model.col2.charAt(i)
-                                    var color = model.col7.charAt(i) === "仄"
-                                            ? "#C55A11"
-                                            : (model.col7.charAt(i) === "平"
-                                               ? "#3B3838"
-                                               : "#6666AA")
-                                    str += "<span style='color:" + color + "'>" + c + "</span>"
-                                }
-                                return str
-                            }
-                            // text: listView.c_ju
+                        Item {
                             Layout.fillHeight: true
                             Layout.preferredWidth: 140
-                            verticalAlignment: Text.AlignVCenter
+
+                            Text {
+                                textFormat: Text.RichText
+                                font.pixelSize: 20
+                                font.bold: true
+                                text: {
+                                    if (!settings.disp_pz)
+                                    {
+                                        return model.col2
+                                    }
+
+                                    var str = ""
+                                    for (var i = 0; i < model.col2.length; ++i) {
+                                        var c = model.col2.charAt(i)
+                                        var color = model.col7.charAt(i) === "仄"
+                                                ? "#C55A11"
+                                                : (model.col7.charAt(i) === "？"
+                                                   ? "#AAAAAA"
+                                                   : (model.col7.charAt(i) === "通"
+                                                      ? "#6666AA"
+                                                      : "#3B3838")
+                                                   )
+                                        str += "<span style='color:" + color + "'>" + c + "</span>"
+                                    }
+                                    return str
+                                }
+                                anchors.left: parent.left
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+
+                            // 上半部分（红）
+                            Text {
+                                font.pixelSize: 20
+                                font.bold: true
+                                color: "#C55A11"
+                                clip: true
+                                height: 15
+                                text: {
+                                    if (!settings.disp_pz)
+                                    {
+                                        return ""
+                                    }
+
+                                    var str = ""
+                                    for (var i = 0; i < model.col2.length; ++i) {
+                                        str += model.col7.charAt(i) === "通" ? model.col2.charAt(i) : "　";
+                                    }
+                                    return str
+                                }
+                                // anchors.top: {console.error(parent.top); return parent.top;}
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
                         }
+
+                        // Text {
+                        //     textFormat: Text.RichText
+                        //     font.pixelSize: 20
+                        //     font.bold: true
+                        //     text: {
+                        //         if (!settings.disp_pz)
+                        //         {
+                        //             return model.col2
+                        //         }
+
+                        //         var str = ""
+                        //         for (var i = 0; i < model.col2.length; ++i) {
+                        //             var c = model.col2.charAt(i)
+                        //             var color = model.col7.charAt(i) === "仄"
+                        //                     ? "#C55A11"
+                        //                     : (model.col7.charAt(i) === "平"
+                        //                        ? "#3B3838"
+                        //                        : "#6666AA")
+                        //             str += "<span style='color:" + color + "'>" + c + "</span>"
+                        //         }
+                        //         return str
+                        //     }
+                        //     // text: listView.c_ju
+                        // }
 
                         // Text {
                             // text: c_ju

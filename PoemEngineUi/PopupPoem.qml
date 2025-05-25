@@ -69,7 +69,7 @@ Popup {
 
         // 第一部分：标题，居中显示
         Text {
-            text: author + " 《" + title + "》"
+            text: root.author + " 《" + root.title + "》"
             font.pixelSize: 14
             font.bold: true
             horizontalAlignment: Text.AlignHCenter
@@ -92,7 +92,7 @@ Popup {
                 anchors.fill: parent
                 readOnly: true
                 textFormat: Text.RichText
-                text: richContent
+                text: root.richContent
                 wrapMode: Text.Wrap
                 font.pixelSize: 16
                 horizontalAlignment: Text.AlignHCenter
@@ -101,9 +101,9 @@ Popup {
 
         RowLayout {
             Text {
-                text: qsTr("体裁：") + yan + qsTr("言 ")
-                      + jushu + qsTr("句 ")
-                      + ticai
+                text: qsTr("体裁：") + root.yan + qsTr("言 ")
+                      + root.jushu + qsTr("句 ")
+                      + root.ticai
                 rightPadding: 10
                 font.pixelSize: 14
                 horizontalAlignment: Text.AlignLeft
@@ -113,7 +113,7 @@ Popup {
             }
 
             Text {
-                text: qsTr("　出律度：") + parseFloat(poem["出律度"]).toFixed(2)
+                text: qsTr("　出律度：") + parseFloat(root.poem["出律度"]).toFixed(2)
                 rightPadding: 10
                 font.pixelSize: 14
                 horizontalAlignment: Text.AlignRight
