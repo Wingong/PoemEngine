@@ -5,6 +5,10 @@
 #include <QDebug>
 #include <QRegularExpression>
 #include <QSet>
+#include <QJsonDocument>
+
+QStringList PoemManager::dataHeader = {"題目", "作者", "詩句", "言數", "句數", "體裁", "句序", "平仄", "id"};
+QStringList PoemManager::dataHeaderVar = {"title", "author", "ju", "yan", "jushu", "ticai", "juind", "pz", "id"};
 
 PoemManager::PoemManager(QObject *parent)
     : QObject{parent}
@@ -52,136 +56,180 @@ QStringList PoemManager::splitNums(const QString &str)
     return indexes.values();
 }
 
-void PoemManager::load(const QString &qts_path, const QString &jubiao_path)
+void PoemManager::load(const QString &qts_path, const QString &jubiao_path, const QString &psy_path, const QString var_path)
 {
-    emit progSet(tr("读取全唐诗……"), 0);
-    QFile file(qts_path);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qWarning() << "无法打开文件:" << file.errorString();
-        emit progSet(tr("无法打开文件 ") + qts_path + file.errorString(), 0);
-        return;
-    }
-
-    QTextStream in(&file);
-    qts_header.clear();
-    while (!in.atEnd()) {
-        QString line = in.readLine();
-        // 使用逗号分割每一行的数据
-        QStringList fields = line.split(',', Qt::KeepEmptyParts);
-        if(qts_header.empty())
-        {
-            for(int i=0; i<fields.size(); i++)
-                qts_header[fields[i]] = i;
-        }
-        else
-            qts[fields[0]] = fields;
-
-        int len = qts.size();
-        if((len % 100) == 0)
-        {
-            emit progSet(tr("读取全唐诗……%1 首").arg(len), 0);
-        }
-    }
-
-    file.close();
-
-    emit progSet(tr("读取句表……"), 0);
-    QFile f_jubiao(jubiao_path);
-    if (!f_jubiao.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qWarning() << "无法打开文件:" << f_jubiao.errorString();
-        emit debug("无法打开文件：" + f_jubiao.errorString());
-        return;
-    }
-
-    QTextStream in_jubiao(&f_jubiao);
-    jubiao_header.clear();
-    QStringList header;
-    bool begin = false;
-    bool first_signal = true;
-
-    int id_col = -1;
-    QList<QStringList> data;
-    QStringList dataHeader = {"題目", "作者", "詩句", "言數", "句數", "體裁", "句序", "平仄", "id"};
-    qsizetype colNum = dataHeader.size();
-    QMap<int, int> headerMapPoem, headerMapJu;
-    for(auto &[key, i] : qts_header.toStdMap())
     {
-        if(dataHeader.contains(key))
-        {
-            headerMapPoem[i] = dataHeader.indexOf(key);
+        emit progSet(tr("读取全唐诗……"), 0);
+        QFile file(qts_path);
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            qWarning() << "无法打开文件:" << file.errorString();
+            emit progSet(tr("无法打开文件 ") + qts_path + file.errorString(), 0);
+            return;
         }
+
+        QTextStream in(&file);
+        qts_header.clear();
+        while (!in.atEnd()) {
+            QString line = in.readLine();
+            // 使用逗号分割每一行的数据
+            QStringList fields = line.split(',', Qt::KeepEmptyParts);
+            if(qts_header.empty())
+            {
+                for(int i=0; i<fields.size(); i++)
+                    qts_header[fields[i]] = i;
+            }
+            else
+                qts[fields[0]] = fields;
+
+            int len = qts.size();
+            if((len % 100) == 0)
+            {
+                emit progSet(tr("读取全唐诗……%1 首").arg(len), 0);
+            }
+        }
+
+        file.close();
     }
 
-    while (!in_jubiao.atEnd()) {
-        QString line = in_jubiao.readLine();
-        // 使用逗号分割每一行的数据
-        QStringList fields = line.split(',', Qt::KeepEmptyParts);
-        if(!begin)
-        {
-            begin = true;
-            header = fields;
-            for(int i=0; i<fields.size(); i++)
-                jubiao_header[fields[i]] = i;
-            id_col = jubiao_header["id"];
+    {
+        emit progSet(tr("读取句表……"), 0);
+        QFile f_jubiao(jubiao_path);
+        if (!f_jubiao.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            qWarning() << "无法打开文件:" << f_jubiao.errorString();
+            emit debug("无法打开文件：" + f_jubiao.errorString());
+            return;
+        }
 
-            for(auto &[key, i] : jubiao_header.toStdMap())
+        QTextStream in_jubiao(&f_jubiao);
+        jubiao_header.clear();
+        QStringList header;
+        bool begin = false;
+        bool first_signal = true;
+
+        int id_col = -1;
+        QList<QStringList> data;
+        qsizetype colNum = dataHeader.size();
+        QMap<int, int> headerMapPoem, headerMapJu;
+        for(auto &[key, i] : qts_header.toStdMap())
+        {
+            if(dataHeader.contains(key))
             {
-                if(dataHeader.contains(key) && key != "id")
+                headerMapPoem[i] = dataHeader.indexOf(key);
+            }
+        }
+
+        while (!in_jubiao.atEnd()) {
+            QString line = in_jubiao.readLine();
+            // 使用逗号分割每一行的数据
+            QStringList fields = line.split(',', Qt::KeepEmptyParts);
+            if(!begin)
+            {
+                begin = true;
+                header = fields;
+                for(int i=0; i<fields.size(); i++)
+                    jubiao_header[fields[i]] = i;
+                id_col = jubiao_header["id"];
+
+                for(auto &[key, i] : jubiao_header.toStdMap())
                 {
-                    headerMapJu[i] = dataHeader.indexOf(key);
+                    if(dataHeader.contains(key) && key != "id")
+                    {
+                        headerMapJu[i] = dataHeader.indexOf(key);
+                    }
                 }
-            }
 
-            // qCritical() << id_col << headerMapJu << headerMapPoem << dataHeader;
-        }
-        else
-        {
-            jubiao.append(fields);
-            int index = jubiao.size()-1;
-            for(int i=0; i<fields.size()-1; i++)
-            {
-                to_jubiao[header[i]][fields[i]].append(index);
-            }
-
-            auto &id = fields[id_col];
-            auto &poem = qts[id];
-            QStringList dataLine(colNum);
-
-            for(auto &[idxSrc, idxTgt] : headerMapPoem.toStdMap())
-            {
-                dataLine[idxTgt] = poem[idxSrc];
-            }
-            for(auto &[idxSrc, idxTgt] : headerMapJu.toStdMap())
-            {
-                dataLine[idxTgt] = fields[idxSrc];
-            }
-
-            data.append(dataLine);
-        }
-
-        int len = jubiao.size();
-        if((len % 1000) == 0)
-        {
-            emit progSet(tr("读取句表……%1 句").arg(len), 0);
-            if(first_signal)
-            {
-                emit dataHeaderLoaded(dataHeader, data);
-                first_signal = false;
+                // qCritical() << id_col << headerMapJu << headerMapPoem << dataHeader;
             }
             else
             {
-                emit dataLoaded(data);
+                jubiao.append(fields);
+                int index = jubiao.size()-1;
+                for(int i=0; i<fields.size()-1; i++)
+                {
+                    to_jubiao[header[i]][fields[i]].append(index);
+                }
+
+                auto &id = fields[id_col];
+                auto &poem = qts[id];
+                QStringList dataLine(colNum);
+
+                for(auto &[idxSrc, idxTgt] : headerMapPoem.toStdMap())
+                {
+                    dataLine[idxTgt] = poem[idxSrc];
+                }
+                for(auto &[idxSrc, idxTgt] : headerMapJu.toStdMap())
+                {
+                    dataLine[idxTgt] = fields[idxSrc];
+                }
+
+                data.append(dataLine);
             }
 
-            data.clear();
+            int len = jubiao.size();
+            if((len % 1000) == 0)
+            {
+                emit progSet(tr("读取句表……%1 句").arg(len), 0);
+                if(first_signal)
+                {
+                    emit dataHeaderLoaded(dataHeader, dataHeaderVar, data);
+                    first_signal = false;
+                }
+                else
+                {
+                    emit dataLoaded(data);
+                }
+
+                data.clear();
+            }
         }
+
+        if(!data.isEmpty())
+            emit dataLoaded(data);
+
+        // emit dataHeaderLoaded(dataHeader, data);
+        f_jubiao.close();
     }
 
-    // emit dataHeaderLoaded(dataHeader, data);
-    f_jubiao.close();
+    {
+        emit progSet(tr("读取平水韵……"), 0);
+        QFile f_psy(psy_path);
+        f_psy.open(QIODevice::ReadOnly);
+        QByteArray jsonData = f_psy.readAll();
+        QJsonDocument doc = QJsonDocument::fromJson(jsonData);
+        auto psy_vmap = doc.toVariant().toMap();
+        f_psy.close();
 
-    if(!data.isEmpty())
-        emit dataLoaded(data);
+        for(auto &[zi, yuns] : psy_vmap.toStdMap())
+        {
+            emit progSet(tr("读取平水韵……%1/%2字").arg(psy.size()).arg(psy_vmap.size()), 0);
+            for(auto &yun : yuns.toList())
+            {
+                psy[zi[0]].append(yun.toMap());
+            }
+        }
+        // qDebug() << "psy: " << psy;
+    }
+
+    {
+        emit progSet(tr("读取繁简、异体字……"), 0);
+        QFile f_var(var_path);
+        f_var.open(QIODevice::ReadOnly);
+        QByteArray jsonData = f_var.readAll();
+        QJsonDocument doc = QJsonDocument::fromJson(jsonData);
+        auto tradsimp_vmap = doc.toVariant().toMap();
+        f_var.close();
+
+        for(auto &[zi, var_map_qvariant] : tradsimp_vmap.toStdMap())
+        {
+            auto var_map = var_map_qvariant.toMap();
+            xvariants[zi[0]] = var_map["kXSemantic"].toStringList().join("");
+            tradsimps[zi[0]] = var_map["kTradSimp"].toStringList().join("");
+            emit progSet(tr("读取繁简、异体字……%1/%2字").arg(xvariants.size()).arg(tradsimp_vmap.size()), 0);
+        }
+        // qCritical() << "C++ DEBUG:" << __func__ << ":" << psy;
+        // qDebug() << "异体字: " << xvariants;
+        // qDebug() << "繁体字: " << tradsimps;
+    }
 
     emit progSet("", 0);
 }
@@ -218,21 +266,30 @@ void PoemManager::onQuery(const QVariantList &values, const QVariantList &strict
     auto pzs = splitString(pz);
     auto ticais = splitString(ticai);
 
+    auto titles = splitString(title);
+    auto jus = splitString(ju);
 
-    if(ju != "")
+
+    if(!jus.isEmpty())
     {
         jumap_search["詩句"].clear();
         if(strict_ju)
         {
-            for(auto const &[key, val] : to_jubiao["詩句"].toStdMap())
-                if(key == ju)
-                    jumap_search["詩句"] += QSet<int>(val.begin(), val.end());
+            for(auto &ju: jus)
+            {
+                for(auto const &[key, val] : to_jubiao["詩句"].toStdMap())
+                    if(key == ju)
+                        jumap_search["詩句"] += QSet<int>(val.begin(), val.end());
+            }
         }
         else
         {
-            for(auto const &[key, val] : to_jubiao["詩句"].toStdMap())
-                if(key.contains(ju))
-                    jumap_search["詩句"] += QSet<int>(val.begin(), val.end());
+            for(auto &ju: jus)
+            {
+                for(auto const &[key, val] : to_jubiao["詩句"].toStdMap())
+                    if(key.contains(ju))
+                        jumap_search["詩句"] += QSet<int>(val.begin(), val.end());
+            }
         }
     }
 
@@ -323,6 +380,9 @@ void PoemManager::onQuery(const QVariantList &values, const QVariantList &strict
         juSet.intersect(set);
     }
 
+    // qCritical() << juSet.size() << strict_title << titles << values << stricts;
+    // qCritical() << strict_title << poem[qts_header["題目"]] << titles;
+
     QList<int> lines;
     for(auto &index : juSet)
     {
@@ -330,24 +390,39 @@ void PoemManager::onQuery(const QVariantList &values, const QVariantList &strict
         auto &id = jubiao[index][jubiao_header["id"]];
         auto &poem = qts[id];
 
-        if(title != "" && poem[qts_header["題目"]] != title)
+        if(!titles.isEmpty())
         {
-            continue;
+            bool cont = true;
+            for(auto &title : titles)
+            {
+                if(strict_title && poem[qts_header["題目"]] == title)
+                {
+                    cont = false;
+                    break;
+                }
+                else if(!strict_title && poem[qts_header["題目"]].contains(title))
+                {
+                    cont = false;
+                    break;
+                }
+            }
+            if(cont)
+                continue;
         }
 
         if(!authors.isEmpty())
         {
-            bool cont = false;
+            bool cont = true;
             for(auto &author : authors)
             {
-                if(strict_author && poem[qts_header["作者"]] != author)
+                if(strict_author && poem[qts_header["作者"]] == author)
                 {
-                    cont = true;
+                    cont = false;
                     break;
                 }
-                else if(!strict_author && !poem[qts_header["作者"]].contains(author))
+                else if(!strict_author && poem[qts_header["作者"]].contains(author))
                 {
-                    cont = true;
+                    cont = false;
                     break;
                 }
             }
@@ -367,17 +442,17 @@ void PoemManager::onQuery(const QVariantList &values, const QVariantList &strict
 
         if(!ticais.isEmpty())
         {
-            bool cont = false;
+            bool cont = true;
             for(auto &ticai : ticais)
             {
-                if(strict_ticai && poem[qts_header["體裁"]] != ticai)
+                if(strict_ticai && poem[qts_header["體裁"]] == ticai)
                 {
-                    cont = true;
+                    cont = false;
                     break;
                 }
-                else if(!strict_ticai && !poem[qts_header["體裁"]].contains(ticai))
+                else if(!strict_ticai && poem[qts_header["體裁"]].contains(ticai))
                 {
-                    cont = true;
+                    cont = false;
                     break;
                 }
             }
@@ -399,4 +474,52 @@ void PoemManager::onSearchById(const QString &id)
         ret[key] = poem[val];
 
     emit searchEnd(ret);
+}
+
+void PoemManager::osSearchYunsByZi(const QChar &zi)
+{
+    auto yuns = psy[zi];
+    if(yuns.isEmpty())
+    {
+        // 异体字
+        for(auto var : xvariants[zi])
+        {
+            if(psy.contains(var))
+            {
+                yuns = psy[var];
+                break;
+            }
+        }
+    }
+    if(yuns.isEmpty())
+    {
+        // 繁体字
+        QString zi_list = tradsimps[zi];
+        for(auto &var : tradsimps[zi])
+        {
+            if(psy.contains(var))
+            {
+                yuns = psy[var];
+                break;
+            }
+            else
+            {
+                for(auto &var_tradsimp : xvariants[var])
+                {
+                    // 繁体字的异体字
+                    if(psy.contains(var_tradsimp))
+                    {
+                        yuns = psy[var_tradsimp];
+                        break;
+                    }
+                }
+                if(!yuns.isEmpty())
+                {
+                    break;
+                }
+            }
+        }
+    }
+
+    emit yunsSearchEnd(yuns);
 }

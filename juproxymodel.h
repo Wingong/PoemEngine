@@ -2,6 +2,7 @@
 #define JUPROXYMODEL_H
 
 #include <QSortFilterProxyModel>
+#include "poemmanager.h"
 
 class JuProxyModel : public QSortFilterProxyModel
 {
@@ -22,11 +23,11 @@ public:
 
     void setSort(const QList<int> &sortCols, const QList<bool> &ascs)
     {
-        qCritical() << sortCols << ascs;
+        qCritical() << "C++ DEBUG:" << __func__ << ":" << sortCols << ascs;
         m_sortCols = sortCols;
         m_ascs = ascs;
-        for(auto &i : sortCols)
-            qCritical() << data(index(10, 0), Qt::UserRole + i);
+        // for(auto &i : sortCols)
+        //     qCritical() << data(index(10, 0), Qt::UserRole + i);
         beginResetModel();
         this->sort(0);
         endResetModel();
@@ -46,7 +47,17 @@ protected:
             auto rightData = sourceModel()->data(source_right, col).toString();
 
             if(leftData == rightData)
-                continue;
+            {
+                auto left_id = sourceModel()->data(source_left, 8+Qt::UserRole+1).toString();
+                auto right_id = sourceModel()->data(source_right, 8+Qt::UserRole+1).toString();
+
+                if(col != 0+Qt::UserRole+1 || left_id == right_id)
+                    continue;
+
+                // qCritical() << "C++ DEBUG:" << __func__ << ":" << left_id << right_id;
+
+                return asc ^ (left_id > right_id);
+            }
 
             auto leftVal = leftData.toInt(&ok);
 

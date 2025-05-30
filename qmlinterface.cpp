@@ -13,7 +13,7 @@ void QmlInterface::setLanguage(const QString &languageCode)
 {
     m_app.removeTranslator(&m_translator);
 
-    qCritical() << ":/translations/" + languageCode + ".qm" << m_translator.load(":/translations/" + languageCode + ".qm");
+    qCritical()<< "C++ DEBUG:" << __func__ << ":" << ":/translations/" + languageCode + ".qm" << m_translator.load(":/translations/" + languageCode + ".qm");
     if (m_translator.load(":/translations/" + languageCode + ".qm")) {
         qCritical() << "TRANSLATION";
         m_app.installTranslator(&m_translator);
@@ -26,16 +26,16 @@ void QmlInterface::sort(QList<int> sortCols, QList<bool> ascs)
     m_proxyModel.setSort(sortCols, ascs);
 }
 
-void QmlInterface::onTableFirst(const QStringList &header, const QList<QStringList> &result)
+void QmlInterface::onTableFirst(const QStringList &header, const QStringList &headerVar, const QList<QStringList> &result)
 {
     m_model.clear();
 
-    qCritical() << header << result;
+    qCritical() << "C++ DEBUG:" << __func__ << ":" << header << result;
 
     QHash<int, QByteArray> roles;
     for(int i=0; i<header.size(); i ++)
     {
-        roles[Qt::UserRole+i+1] = QString("col%1").arg(i).toLatin1();
+        roles[Qt::UserRole+i+1] = headerVar[i].toLatin1();
     }
     m_model.setItemRoleNames(roles);   // Qt 6 中这样设定角色名
 
@@ -52,7 +52,7 @@ void QmlInterface::onTableFirst(const QStringList &header, const QList<QStringLi
 
 void QmlInterface::onTable(const QList<QStringList> &result)
 {
-    // qCritical() << "header << result";
+    // qCritical() << "C++ DEBUG:" << __func__ << ":" << "header << result";
     for (const auto& row : result) {
         QList<QStandardItem*> items{new QStandardItem};
 
@@ -78,8 +78,20 @@ void QmlInterface::onPoemSearched(const QMap<QString, QString> &poem)
     m_poemResult.clear();
     for(auto &[key, val] : poem.toStdMap())
         m_poemResult[key] = val;
-    qCritical() << m_poemResult;
+    qCritical() << "C++ DEBUG:" << __func__ << ":" << m_poemResult;
     emit poemResultReceived(m_poemResult);
+}
+
+void QmlInterface::onYunsSearched(const QList<QVariantMap> &yuns)
+{
+    QVariantList ret;
+    for(auto &yun : yuns)
+    {
+        ret.append(QVariant(yun));
+    }
+
+    qCritical() << "C++ DEBUG:" << __func__ << ":" << yuns;
+    emit yunsResultReceived(ret);
 }
 
 void QmlInterface::onFormat(const QString &format, int max)

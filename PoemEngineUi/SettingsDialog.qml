@@ -1,9 +1,11 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import QtQuick.Controls.Material 2.15
 import Qt.labs.settings
 
 Dialog {
+    id: root
     width: 336
     height: 400
     property var appInterf: null
@@ -16,8 +18,10 @@ Dialog {
 
     function findIndexByValue(value) {
         for (var i = 0; i < sortOptionsModel.count; ++i) {
-            if (sortOptionsModel.get(i).value === value)
+            if (sortOptionsModel.get(i).value === value) {
+                console.error("QML DEBUG: findIndexByValue: ", value, i)
                 return i;
+            }
         }
         return 0;
     }
@@ -35,7 +39,7 @@ Dialog {
 
     function updateComboBoxModel(comboBox, values) {
         var newModel = getFilteredModel(values);
-        console.error(newModel, comboBox.currentText, comboBox.currentValue, values)
+        console.error("QML DEBUG:", "updateComboBoxModel:", newModel, comboBox.currentText, comboBox.currentValue, values)
         comboBox.model = newModel
 
         // 检查当前文本是否仍存在于新模型中
@@ -51,10 +55,10 @@ Dialog {
 
     ListModel {
         id: sortOptionsModel
-        ListElement { text: qsTr("诗句"); value: 2 }
-        ListElement { text: qsTr("平仄"); value: 7 }
         ListElement { text: qsTr("诗题"); value: 0 }
         ListElement { text: qsTr("作者"); value: 1 }
+        ListElement { text: qsTr("诗句"); value: 2 }
+        ListElement { text: qsTr("平仄"); value: 7 }
         ListElement { text: qsTr("言数"); value: 3 }
         ListElement { text: qsTr("句数"); value: 4 }
         ListElement { text: qsTr("体裁"); value: 5 }
@@ -66,7 +70,7 @@ Dialog {
         spacing: 0
         // anchors.margins: 16
 
-        Text {
+        Label {
             text: qsTr("排序")
             topPadding: 15
             bottomPadding: 10
@@ -107,6 +111,8 @@ Dialog {
                         appSettings.sort2 = comboBox2.currentValue
                         appSettings.sort3 = comboBox3.currentValue
 
+                        console.error("QML DEBUG: comboBox1: sort value: ", comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue)
+                        console.error("QML DEBUG: comboBox1: sort text: ", comboBox1.currentText, comboBox2.currentText, comboBox3.currentText)
                         appInterf.sort([comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue],
                                     [appSettings.asc1, appSettings.asc2, appSettings.asc3])
                     }
@@ -122,6 +128,8 @@ Dialog {
                     onCheckedChanged: {
                         appSettings.asc1 = checked
 
+                        console.error("QML DEBUG: checkBox1: sort value: ", comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue)
+                        console.error("QML DEBUG: checkBox1: sort text: ", comboBox1.currentText, comboBox2.currentText, comboBox3.currentText)
                         appInterf.sort([comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue],
                                     [appSettings.asc1, appSettings.asc2, appSettings.asc3])
                     }
@@ -150,6 +158,8 @@ Dialog {
                         appSettings.sort2 = comboBox2.currentValue
                         appSettings.sort3 = comboBox3.currentValue
 
+                        console.error("QML DEBUG: comboBox2: sort value: ", comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue)
+                        console.error("QML DEBUG: comboBox2: sort text: ", comboBox1.currentText, comboBox2.currentText, comboBox3.currentText)
                         appInterf.sort([comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue],
                                     [appSettings.asc1, appSettings.asc2, appSettings.asc3])
                     }
@@ -165,6 +175,8 @@ Dialog {
                     onCheckedChanged: {
                         appSettings.asc2 = checked
 
+                        console.error("QML DEBUG: checkBox2: sort value: ", comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue)
+                        console.error("QML DEBUG: checkBox2: sort text: ", comboBox1.currentText, comboBox2.currentText, comboBox3.currentText)
                         appInterf.sort([comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue],
                                     [appSettings.asc1, appSettings.asc2, appSettings.asc3])
                     }
@@ -190,6 +202,8 @@ Dialog {
                     onActivated: {
                         appSettings.sort3 = comboBox3.currentValue
 
+                        console.error("QML DEBUG: comboBox3: sort value: ", comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue)
+                        console.error("QML DEBUG: comboBox3: sort text: ", comboBox1.currentText, comboBox2.currentText, comboBox3.currentText)
                         appInterf.sort([comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue],
                                     [appSettings.asc1, appSettings.asc2, appSettings.asc3])
                     }
@@ -205,6 +219,8 @@ Dialog {
                     onCheckedChanged: {
                         appSettings.asc3 = checked
 
+                        console.error("QML DEBUG: checkBox3: sort value: ", comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue)
+                        console.error("QML DEBUG: checkBox3: sort text: ", comboBox1.currentText, comboBox2.currentText, comboBox3.currentText)
                         appInterf.sort([comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue],
                                     [appSettings.asc1, appSettings.asc2, appSettings.asc3])
                     }
@@ -215,10 +231,10 @@ Dialog {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 1
-            color: "#cccccc" // 分隔线颜色
+            color: Material.theme === Material.Light ? "#ccc" : "#444" // 分隔线颜色
         }
 
-        Text {
+        Label {
             text: qsTr("精确搜索")
             topPadding: 15
             bottomPadding: 10
@@ -228,10 +244,16 @@ Dialog {
             font.pointSize: 16
         }
 
-
-
         RowLayout {
             spacing: 0
+            CheckBox {
+                id: cbx_title
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                text: appTrDict["诗题"]
+                checked: appSettings.strict_title
+                onCheckedChanged: appSettings.strict_title = checked
+            }
             CheckBox {
                 id: cbx_ju
                 Layout.fillWidth: true
@@ -274,10 +296,10 @@ Dialog {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 1
-            color: "#cccccc" // 分隔线颜色
+            color: Material.theme === Material.Light ? "#ccc" : "#444"
         }
 
-        Text {
+        Label {
             text: qsTr("语言和显示")
             topPadding: 15
             bottomPadding: 10
@@ -289,62 +311,33 @@ Dialog {
 
         RowLayout {
             Layout.alignment: Qt.AlignHCenter
-            Layout.bottomMargin: 10
+            Layout.bottomMargin: 0
             spacing: 0
-            ColumnLayout {
-                spacing: 0
-                Text { width: 16; height: 20;text: "休"; color: "#3B3838"; font.pixelSize: 22; font.bold: true; horizontalAlignment: Text.AlignHCenter; id: t0}
-                Text { width: 14;text: "平"; color: "#666"; font.pixelSize: 14; horizontalAlignment: Text.AlignHCenter; Layout.alignment: Qt.AlignHCenter}
-            }
-            ColumnLayout {
-                spacing: 0
-                Text { width: 16; height: 20;text: "作"; color: appSettings.disp_pz ? "#C55A11" : "#3B3838"; font.pixelSize: 22; font.bold: true; horizontalAlignment: Text.AlignHCenter; id: t1}
-                Text { width: 14;text: "仄"; color: "#666"; font.pixelSize: 14; horizontalAlignment: Text.AlignHCenter; Layout.alignment: Qt.AlignHCenter}
-            }
-            ColumnLayout {
-                spacing: 0
-                Text { id: t2; width: 16; height: 20;text: "狂"; color: "#3B3838"; font.pixelSize: 22; font.bold: true; horizontalAlignment: Text.AlignHCenter}
-                Text { width: 14;text: "平"; color: "#666"; font.pixelSize: 14; horizontalAlignment: Text.AlignHCenter; Layout.alignment: Qt.AlignHCenter}
-            }
-            ColumnLayout {
-                spacing: 0
-                Text { id: t3; width: 16; height: 20;text: "歌"; color: "#3B3838"; font.pixelSize: 22; font.bold: true; horizontalAlignment: Text.AlignHCenter}
-                Text { width: 14;text: "平"; color: "#666"; font.pixelSize: 14; horizontalAlignment: Text.AlignHCenter; Layout.alignment: Qt.AlignHCenter}
-            }
-            ColumnLayout {
-                spacing: 0
-                Text { id: t4; width: 16; height: 20;text: "老"; color: appSettings.disp_pz ? "#C55A11" : "#3B3838"; font.pixelSize: 22; font.bold: true; horizontalAlignment: Text.AlignHCenter}
-                Text { width: 14;text: "仄"; color: "#666"; font.pixelSize: 14; horizontalAlignment: Text.AlignHCenter; Layout.alignment: Qt.AlignHCenter}
-            }
-            ColumnLayout {
-                spacing: 0
-                Text { width: 16; height: 20;text: ","; color: "#666"; font.pixelSize: 22; font.bold: true; horizontalAlignment: Text.AlignHCenter}
-                Text { width: 14;text: "　"; color: "#666"; font.pixelSize: 14; horizontalAlignment: Text.AlignHCenter; Layout.alignment: Qt.AlignHCenter}
-            }
-            ColumnLayout {
-                spacing: 0
-                Text { id: t5; width: 16; height: 20;text: "迴"; color: appSettings.disp_pz ? "#6666AA" : "#3B3838"; font.pixelSize: 22; font.bold: true; horizontalAlignment: Text.AlignHCenter}
-                Text { width: 14;text: "？"; color: "#666"; font.pixelSize: 14; horizontalAlignment: Text.AlignHCenter; Layout.alignment: Qt.AlignHCenter}
-            }
-            ColumnLayout {
-                spacing: 0
-                Text { id: t6; width: 16; height: 20;text: "看"; color: appSettings.disp_pz ? "#6666AA" : "#3B3838"; font.pixelSize: 22; font.bold: true; horizontalAlignment: Text.AlignHCenter}
-                Text { width: 14;text: "通"; color: "#666"; font.pixelSize: 14; horizontalAlignment: Text.AlignHCenter; Layout.alignment: Qt.AlignHCenter}
-            }
-            ColumnLayout {
-                spacing: 0
-                Text { id: t7; width: 16; height: 20;text: "不"; color: appSettings.disp_pz ? "#6666AA" : "#3B3838"; font.pixelSize: 22; font.bold: true; horizontalAlignment: Text.AlignHCenter}
-                Text { width: 14;text: "通"; color: "#666"; font.pixelSize: 14; horizontalAlignment: Text.AlignHCenter; Layout.alignment: Qt.AlignHCenter}
-            }
-            ColumnLayout {
-                spacing: 0
-                Text { id: t8; width: 16; height: 20;text: "住"; color: appSettings.disp_pz ? "#C55A11" : "#3B3838"; font.pixelSize: 22; font.bold: true; horizontalAlignment: Text.AlignHCenter}
-                Text { width: 14;text: "仄"; color: "#666"; font.pixelSize: 14; horizontalAlignment: Text.AlignHCenter; Layout.alignment: Qt.AlignHCenter}
-            }
-            ColumnLayout {
-                spacing: 0
-                Text { id: t9; width: 16; height: 20;text: "心"; color: "#3B3838"; font.pixelSize: 22; font.bold: true; horizontalAlignment: Text.AlignHCenter}
-                Text { width: 14;text: "平"; color: "#666"; font.pixelSize: 14; horizontalAlignment: Text.AlignHCenter; Layout.alignment: Qt.AlignHCenter}
+
+            Repeater
+            {
+                id: rep
+                property string ju: "休作狂歌老,回看不住心"
+                property string pz: "平仄平平仄 ？通通仄平"
+                model: ju.length
+
+                ColumnLayout {
+                    spacing: -10
+                    PzTextItem {
+                        fontSize: 22
+                        ju: rep.ju[index]
+                        pz: rep.pz[index]
+                        dispPz: appSettings.disp_pz
+                    }
+
+                    Label {
+                        text: rep.pz[index];
+                        color: "#666";
+                        font.pixelSize: 14;
+                        horizontalAlignment: Text.AlignHCenter;
+                        Layout.alignment: Qt.AlignHCenter
+                    }
+                }
             }
         }
 
@@ -370,21 +363,38 @@ Dialog {
             }
         }
 
-        ComboBox {
-            Layout.fillHeight: true
-            id: languageSelector
-            model: [qsTr("简体"), qsTr("繁體")]
-            currentIndex: (appSettings.languageCode === "zh_CN") ? 0 : 1
-            onCurrentIndexChanged: {
-                if(currentIndex === 0)
-                {
-                    appSettings.languageCode = "zh_CN"
-                    appInterf.setLanguage("zh_CN")
+
+        RowLayout {
+            spacing: 5
+            Layout.fillWidth: true
+
+            ComboBox {
+                Layout.fillHeight: true
+                id: languageSelector
+                model: [qsTr("简体"), qsTr("繁體")]
+                currentIndex: (appSettings.languageCode === "zh_CN") ? 0 : 1
+                onCurrentIndexChanged: {
+                    if(currentIndex === 0)
+                    {
+                        appSettings.languageCode = "zh_CN"
+                        appInterf.setLanguage("zh_CN")
+                    }
+                    else
+                    {
+                        appSettings.languageCode = "zh_MO"
+                        appInterf.setLanguage("zh_MO")
+                    }
                 }
-                else
-                {
-                    appSettings.languageCode = "zh_MO"
-                    appInterf.setLanguage("zh_MO")
+            }
+
+            ComboBox {
+                Layout.fillHeight: true
+                id: themeSelector
+                model: [qsTr("浅色"), qsTr("暗色"), qsTr("跟随系统")]
+                currentIndex: appSettings.theme
+                onCurrentIndexChanged: {
+                    appSettings.theme = currentIndex
+                    Material.theme = currentIndex
                 }
             }
         }

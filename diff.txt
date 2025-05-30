@@ -1,0 +1,6 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index bcf10e5..4da29a6 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -1,5 +1,15 @@
+ # 闁哄洤鐡ㄩ弻濠囧籍閵夈儳绠堕柕鍡曡兌閻擄紕鎷犻崱娆忎化闁告粌鐭佹穱

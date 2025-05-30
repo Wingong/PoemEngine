@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import QtQuick.Controls.Material 2.15
 
 Popup {
     id: root
@@ -18,9 +19,9 @@ Popup {
     property string juind: ""
     property string pz: ""
     property var poem: null
-
-    // 富文本内容：将 ju 加粗
-    property string richContent: {
+    property var yuns: null
+    property string zi_disp: ""
+    property var ju_list: {
         const lines = []
         const regex = /[^，。？！；]+[，。？！；]/g
         const matches = poem["內容"].match(regex) || []
@@ -53,22 +54,38 @@ Popup {
                 i = j
             }
 
-            lines.push(current)
+            // if (ju.length !== 0)
+            //     current = current.replace(ju, "<b>" + ju + "</b>")
+
+
+            let start = current.indexOf(ju)
+            let end = start >= 0 ? start + ju.length : -1
+
+            const line = []
+            for (var j=0; j<current.length; j++)
+                line.push([current[j], j >= start && j < end ? true : false])
+
+
+            lines.push(line)
         }
-        let joined = lines.join("<br/>")
-        if (ju.length === 0) return joined
-        return joined.replace(ju, "<b>" + ju + "</b>")
+
+        return lines
+    }
+
+    function get_pz(yun) {
+        return yun["聲調"][0] === "平" ? "平" : "仄";
     }
 
     // 自动高度（由 Layout 自动决定）
     contentItem: ColumnLayout {
+        id: rootLayout
         width: root.availableWidth
         anchors.fill: parent
         anchors.margins: 16
         spacing: 12
 
         // 第一部分：标题，居中显示
-        Text {
+        Label {
             text: root.author + " 《" + root.title + "》"
             font.pixelSize: 14
             font.bold: true
@@ -82,26 +99,77 @@ Popup {
             id: v_poem
             ScrollBar.vertical.interactive: true
             Layout.fillHeight: true
-            Layout.maximumHeight: 400
+            // Layout.maximumHeight: 400
             Layout.alignment: Qt.AlignHCenter
 
             // ScrollBar.vertical.policy: ScrollBar.AlwaysOn
 
-            // 第二部分：富文本，自动换行，限制宽度
-            TextEdit {
+            ColumnLayout {
                 anchors.fill: parent
-                readOnly: true
-                textFormat: Text.RichText
-                text: root.richContent
-                wrapMode: Text.Wrap
-                font.pixelSize: 16
-                horizontalAlignment: Text.AlignHCenter
+                width: 80
+
+                Repeater {
+                    model: root.ju_list
+
+                    delegate: Flow {
+                        spacing: 0
+                        Layout.maximumWidth: root.availableWidth
+                        Layout.alignment: Qt.AlignHCenter
+
+                        Repeater {
+                            model: modelData
+
+                            delegate: Item {
+                                implicitWidth: textItem.implicitWidth
+                                implicitHeight: textItem.implicitHeight
+                                Layout.alignment: Qt.AlignHCenter
+
+                                Text {
+                                    id: textItem
+                                    anchors.fill: parent
+                                    font.pixelSize: 16
+                                    color: Material.foreground
+                                    horizontalAlignment: Text.AlignHCenter
+                                    text: modelData[0]
+                                    font.bold: modelData[1]
+                                }
+
+                                MouseArea {
+                                    id: mouseArea
+                                    anchors.fill: parent
+                                    onClicked:{
+                                        const code = modelData[0].codePointAt(0)
+
+                                        if(
+                                            (code >= 0x4E00 && code <= 0x9FFF)   || // 基本汉字
+                                            (code >= 0x3400 && code <= 0x4DBF)   || // 扩展 A
+                                            (code >= 0x20000 && code <= 0x2A6DF) || // 扩展 B
+                                            (code >= 0x2A700 && code <= 0x2B73F) || // 扩展 C
+                                            (code >= 0x2B740 && code <= 0x2B81F) || // 扩展 D
+                                            (code >= 0x2B820 && code <= 0x2CEAF) || // 扩展 E
+                                            (code >= 0x2CEB0 && code <= 0x2EBEF) || // 扩展 F
+                                            (code >= 0x30000 && code <= 0x3134F) || // 扩展 G
+                                            (code >= 0xF900 && code <= 0xFAFF)   || // 兼容汉字
+                                            (code >= 0x2F00 && code <= 0x2FDF)      // 康熙部首
+                                        )
+                                            root.zi_disp = modelData[0]
+                                        else
+                                            root.zi_disp = ""
+
+                                        interf.searchYunsByZi(modelData[0])
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                }
             }
         }
 
         RowLayout {
-            Text {
-                text: qsTr("体裁：") + root.yan + qsTr("言 ")
+            Label {
+                text: qsTr("体裁：") + root.yan === -1 ? root.yan : "杂" + qsTr("言 ")
                       + root.jushu + qsTr("句 ")
                       + root.ticai
                 rightPadding: 10
@@ -112,7 +180,7 @@ Popup {
                 wrapMode: Text.Wrap
             }
 
-            Text {
+            Label {
                 text: qsTr("　出律度：") + parseFloat(root.poem["出律度"]).toFixed(2)
                 rightPadding: 10
                 font.pixelSize: 14
@@ -123,6 +191,134 @@ Popup {
             }
         }
 
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 1
+            color: Material.theme === Material.Light ? "#ccc" : "#444"
+            visible: poem["注釋"] !== ""
+        }
 
+        Label {
+            text: qsTr("注释")
+            rightPadding: 10
+            font.bold: true
+            font.pixelSize: 14
+            horizontalAlignment: Text.AlignLeft
+            Layout.alignment: Qt.AlignRight
+            Layout.fillWidth: true
+            wrapMode: Text.Wrap
+            visible: poem["注釋"] !== ""
+        }
+
+        ScrollView {
+            id: v_note
+            ScrollBar.vertical.interactive: true
+            Layout.fillHeight: true
+            // Layout.maximumHeight: 100
+            Layout.alignment: Qt.AlignHCenter
+            visible: poem["注釋"] !== ""
+
+            // ScrollBar.vertical.policy: ScrollBar.AlwaysOn
+
+            ColumnLayout {
+                anchors.fill: parent
+                width: 80
+
+                Repeater {
+                    model: {
+                        return poem["注釋"].split(/\s*;\s*/).filter(str => str.length > 0);
+                    }
+
+                    delegate: Text {
+                        Layout.maximumWidth: root.availableWidth
+                        Layout.alignment: Qt.AlignLeft
+                        wrapMode: Text.Wrap
+                        font.weight: 14
+                        text: "· " + modelData
+                    }
+                }
+            }
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 1
+            color: Material.theme === Material.Light ? "#ccc" : "#444"
+            visible: root.zi_disp !== ""
+        }
+
+        RowLayout {
+            Layout.preferredHeight: 60
+            Layout.minimumHeight: yunsFlow.implicitHeight
+            visible: root.zi_disp !== ""
+            // Layout.preferredHeight: 60
+            PzTextItem {
+                id: item_zi
+                Layout.fillHeight: true
+                Layout.alignment: Qt.AlignHCenter
+                Layout.minimumWidth: implicitWidth
+                Layout.maximumWidth: 40
+                Layout.preferredWidth: implicitWidth
+                Layout.leftMargin: 10
+                Layout.rightMargin: 10
+                fontSize: 24
+                ju: root.zi_disp
+                pz: {
+                    let pz_ret = "？"
+                    for(let yun of root.yuns) {
+                        console.error("韵", yun, root.yuns)
+                        if(pz_ret === "？")
+                            pz_ret = get_pz(yun);
+                        else if(pz_ret !== "通" && pz_ret !== get_pz(yun)){
+                            return "通"
+                        }
+                    }
+                    return pz_ret;
+                }
+                // {
+                //     // console.error("QML DEBUG:", "item_zi:", root.zi_disp == "")
+                //     return root.zi_disp !== ""
+                // }
+            }
+
+            Flow {
+                id: yunsFlow
+                Layout.fillWidth: true
+                // Layout.fillHeight: true
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                spacing: 10
+
+                Repeater {
+                    model: root.yuns
+
+                    delegate: Item {
+                        implicitWidth: yunText.implicitWidth + 10
+                        implicitHeight: yunText.implicitHeight + 5
+                        Layout.topMargin: 2
+                        Layout.bottomMargin: 2
+                        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                        Text {
+                            id: yunText
+                            anchors.centerIn: parent
+                            anchors.verticalCenterOffset: 0
+                            font.weight: 16
+                            verticalAlignment: Text.AlignVCenter
+                            horizontalAlignment: Text.AlignHCenter
+                            text: {
+                                let ret = [modelData["聲調"], modelData["序號"], modelData["韻名"]].join(" ")
+                                return ret
+                            }
+                        }
+
+                        Rectangle {
+                            anchors.fill: parent
+                            color: modelData["聲調"][0] == "平" ? "#D0D6D8" :"#DDC8B0"
+                            z: -1
+                            radius: 10
+                        }
+                    }
+                }
+            }
+        }
     }
 }

@@ -18,7 +18,7 @@ void listResources(const QString &path, int depth = 0) {
     // 输出目录中的文件
     QFileInfoList entries = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries);
     for (const QFileInfo &entry : entries) {
-        qCritical() << indent << (entry.isDir() ? "[Dir] " : "[File]") << entry.filePath();
+        qCritical() << "C++ DEBUG:" << __func__ << ":" << indent << (entry.isDir() ? "[Dir] " : "[File]") << entry.filePath();
         if (entry.isDir()) {
             listResources(entry.filePath(), depth + 1);
         }
@@ -45,8 +45,10 @@ int main(int argc, char *argv[])
 
     QObject::connect(interf, &QmlInterface::querySent, manager, &PoemManager::onQuery);
     QObject::connect(interf, &QmlInterface::searchSent, manager, &PoemManager::onSearchById);
+    QObject::connect(interf, &QmlInterface::yunsSearchSent, manager, &PoemManager::osSearchYunsByZi);
     QObject::connect(manager, &PoemManager::queryEnd, interf, &QmlInterface::onFilter);
     QObject::connect(manager, &PoemManager::searchEnd, interf, &QmlInterface::onPoemSearched);
+    QObject::connect(manager, &PoemManager::yunsSearchEnd, interf, &QmlInterface::onYunsSearched);
 
 
     qmlRegisterType<JuProxyModel>("JuProxyModel", 1, 0, "JuProxyModel");
@@ -62,6 +64,10 @@ int main(int argc, char *argv[])
 
 
 
-    QMetaObject::invokeMethod(manager, &PoemManager::load, QString(":/data/qts.csv"), QString(":/data/ju_tab.csv"));
+    QMetaObject::invokeMethod(manager, &PoemManager::load,
+                              QString(":/data/qts.csv"),
+                              QString(":/data/ju_tab.csv"),
+                              QString(":/data/psy.json"),
+                              QString(":/data/unihan-extend.json"));
     return app.exec();
 }

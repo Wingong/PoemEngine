@@ -39,21 +39,29 @@ public:
         emit searchSent(id);
     }
 
+    Q_INVOKABLE void searchYunsByZi(const QChar &zi)
+    {
+        emit yunsSearchSent(zi);
+    }
+
     Q_INVOKABLE void setLanguage(const QString &languageCode);
     Q_INVOKABLE void sort(QList<int> sortCols, QList<bool> ascs);
 
 signals:
     void labTextChanged();
     void poemResultReceived(QVariantMap poem);
+    void yunsResultReceived(QVariantList yuns);
 
     void querySent(const QVariantList &values, const QVariantList &stricts);
     void searchSent(const QString &id);
+    void yunsSearchSent(const QChar &zi);
 
 public slots:
-    void onTableFirst(const QStringList &header, const QList<QStringList> &result);
+    void onTableFirst(const QStringList &header, const QStringList &headerVar, const QList<QStringList> &result);
     void onTable(const QList<QStringList> &result);
     void onFilter(const QList<int> &lines);
     void onPoemSearched(const QMap<QString, QString> &poem);
+    void onYunsSearched(const QList<QVariantMap> &yuns);
     void onFormat(const QString &format, int max);
     void onEnd();
 

@@ -12,8 +12,10 @@ Window {
 
     property int text_default_height: 32
 
-    Material.theme: Material.System
+    Material.theme: settings.theme
     Material.accent: Material.LightBlue
+
+    color: Material.background
 
     visible: true
     title: qsTr("诗句检索")
@@ -54,7 +56,7 @@ Window {
         id: settings
         category: "UserPreferences"
         property string languageCode    : ""
-        property int    theme           : 0
+        property int    theme           : 2
         property bool   strict_ju       : false
         property bool   strict_pz       : false
         property bool   strict_title    : true
@@ -72,15 +74,22 @@ Window {
     }
 
     Component.onCompleted: {
-        console.error(settings.languageCode)
+        console.error("QML DEBUG:", "Lauguage Code:", settings.languageCode)
         interf.setLanguage(settings.languageCode)
     }
 
     Connections {
         target: interf
-        onPoemResultReceived: (poem) => {
-            popup_Poem.poem  = poem
+        function onPoemResultReceived(poem) {
+            popup_Poem.poem = poem
+            popup_Poem.yuns = null
+            popup_Poem.zi_disp = ""
             popup_Poem.open()
+        }
+
+        function onYunsResultReceived(yuns) {
+            popup_Poem.yuns = yuns
+            // console.error("QML DEBUG: Yuns: ", yuns)
         }
     }
 
@@ -105,6 +114,9 @@ Window {
                 Layout.fillWidth: true
                 placeholderText: qsTr("送杜少府之任蜀州")
                 Layout.preferredHeight: root.text_default_height
+                onAccepted: {
+                    btnQuery.click()
+                }
             }
 
             Label {
@@ -136,7 +148,9 @@ Window {
                 placeholderText: "8-9"
                 Layout.preferredHeight: root.text_default_height
                 Layout.preferredWidth: 60
-
+                onAccepted: {
+                    btnQuery.click()
+                }
             }
         }
         // 顶部搜索栏
@@ -155,7 +169,9 @@ Window {
                 Layout.fillWidth: true
                 placeholderText: qsTr("白居易")
                 Layout.preferredHeight: root.text_default_height
-
+                onAccepted: {
+                    btnQuery.click()
+                }
             }
 
             Label {
@@ -171,7 +187,9 @@ Window {
                 placeholderText: qsTr("律诗")
                 Layout.preferredHeight: root.text_default_height
                 Layout.preferredWidth: 60
-
+                onAccepted: {
+                    btnQuery.click()
+                }
             }
 
             Label {
@@ -187,7 +205,9 @@ Window {
                 placeholderText: "1,3,5"
                 Layout.preferredHeight: root.text_default_height
                 Layout.preferredWidth: 60
-
+                onAccepted: {
+                    btnQuery.click()
+                }
             }
 
         }
@@ -208,7 +228,9 @@ Window {
                 Layout.fillWidth: true
                 placeholderText: qsTr("山隨平野盡")
                 Layout.preferredHeight: root.text_default_height
-
+                onAccepted: {
+                    btnQuery.click()
+                }
             }
 
             Label {
@@ -222,10 +244,13 @@ Window {
                 Layout.fillWidth: true
                 placeholderText: qsTr("仄平平仄仄")
                 Layout.preferredHeight: root.text_default_height
-
+                onAccepted: {
+                    btnQuery.click()
+                }
             }
 
             Button {
+                id: btnQuery
                 flat: true
                 text: "🔍"
                 font.family: "Noto Emoji"
@@ -248,7 +273,7 @@ Window {
                                  inputJuind.text],
                                  [settings.strict_ju,
                                  settings.strict_pz,
-                                 false,
+                                 settings.strict_title,
                                  settings.strict_author,
                                  false,
                                  false,
@@ -259,25 +284,6 @@ Window {
                 // Layout.preferredWidth: 60
             }
         }
-
-        // 模式 + 选项区
-        // ColumnLayout {
-        //     spacing: 6
-
-        //     RowLayout {
-        //         Label { text: qsTr("查询模式") }
-        //         ComboBox {
-        //             id: modeSelect
-        //             model: [qsTr("全部"), trDict["诗句"], trDict["平仄"]]
-        //             Layout.preferredHeight: root.text_default_height
-        //         }
-        //     }
-
-        //     ColumnLayout {
-        //         CheckBox { id: opt2; text: qsTr("繁简、异体转换"); checked: true }
-        //     }
-        // }
-
 
         // 滚动视图区域
         ScrollView {
@@ -298,22 +304,22 @@ Window {
                     id: delegateItem
                     width: listView.width
                     height: 60
-                    color: mouseArea.pressed ? "#e0e0e0" : "white"
+                    color: mouseArea.pressed ? (Material.theme === Material.Light ? "#e0e0e0" : "#202020") : Material.background
 
                     // 点击效果
                     MouseArea {
                         id: mouseArea
                         anchors.fill: parent
                         onClicked: {
-                            interf.searchById(model.col8)
-                            popup_Poem.title    = model.col0
-                            popup_Poem.author   = model.col1
-                            popup_Poem.ju       = model.col2
-                            popup_Poem.yan      = model.col3
-                            popup_Poem.jushu    = model.col4
-                            popup_Poem.ticai    = model.col5
-                            popup_Poem.juind    = model.col6
-                            popup_Poem.pz       = model.col7
+                            interf.searchById(model.id)
+                            popup_Poem.title    = model.title
+                            popup_Poem.author   = model.author
+                            popup_Poem.ju       = model.ju
+                            popup_Poem.yan      = model.yan
+                            popup_Poem.jushu    = model.jushu
+                            popup_Poem.ticai    = model.ticai
+                            popup_Poem.juind    = model.juind
+                            popup_Poem.pz       = model.pz
                         }
                     }
 
@@ -322,97 +328,15 @@ Window {
                         spacing: 10
 
                         // 左侧大字体
-                        Item {
+                        PzTextItem {
                             Layout.fillHeight: true
                             Layout.preferredWidth: 140
 
-                            Text {
-                                textFormat: Text.RichText
-                                font.pixelSize: 20
-                                font.bold: true
-                                text: {
-                                    if (!settings.disp_pz)
-                                    {
-                                        return model.col2
-                                    }
+                            ju: model.ju
+                            pz: model.pz
+                            dispPz: settings.disp_pz
 
-                                    var str = ""
-                                    for (var i = 0; i < model.col2.length; ++i) {
-                                        var c = model.col2.charAt(i)
-                                        var color = model.col7.charAt(i) === "仄"
-                                                ? "#C55A11"
-                                                : (model.col7.charAt(i) === "？"
-                                                   ? "#AAAAAA"
-                                                   : (model.col7.charAt(i) === "通"
-                                                      ? "#6666AA"
-                                                      : "#3B3838")
-                                                   )
-                                        str += "<span style='color:" + color + "'>" + c + "</span>"
-                                    }
-                                    return str
-                                }
-                                anchors.left: parent.left
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
-
-                            // 上半部分（红）
-                            Text {
-                                font.pixelSize: 20
-                                font.bold: true
-                                color: "#C55A11"
-                                clip: true
-                                height: 15
-                                text: {
-                                    if (!settings.disp_pz)
-                                    {
-                                        return ""
-                                    }
-
-                                    var str = ""
-                                    for (var i = 0; i < model.col2.length; ++i) {
-                                        str += model.col7.charAt(i) === "通" ? model.col2.charAt(i) : "　";
-                                    }
-                                    return str
-                                }
-                                // anchors.top: {console.error(parent.top); return parent.top;}
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
                         }
-
-                        // Text {
-                        //     textFormat: Text.RichText
-                        //     font.pixelSize: 20
-                        //     font.bold: true
-                        //     text: {
-                        //         if (!settings.disp_pz)
-                        //         {
-                        //             return model.col2
-                        //         }
-
-                        //         var str = ""
-                        //         for (var i = 0; i < model.col2.length; ++i) {
-                        //             var c = model.col2.charAt(i)
-                        //             var color = model.col7.charAt(i) === "仄"
-                        //                     ? "#C55A11"
-                        //                     : (model.col7.charAt(i) === "平"
-                        //                        ? "#3B3838"
-                        //                        : "#6666AA")
-                        //             str += "<span style='color:" + color + "'>" + c + "</span>"
-                        //         }
-                        //         return str
-                        //     }
-                        //     // text: listView.c_ju
-                        // }
-
-                        // Text {
-                            // text: c_ju
-                            // font.pixelSize: 20
-                            // font.bold: true
-                            // Layout.leftMargin: 10
-                            // Layout.fillHeight: true
-                            // Layout.preferredWidth: 140
-                            // verticalAlignment: Text.AlignVCenter
-                        // }
 
                         // 右侧上下布局
                         ColumnLayout {
@@ -424,10 +348,10 @@ Window {
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
                                 Text {
-                                    text: model.col1 + " 《" + model.col0 + "》"
+                                    text: model.author + " 《" + model.title + "》"
                                     font.pixelSize: 14
                                     font.bold: true
-                                    color: "#444444"
+                                    color: Material.theme === Material.Light ? "#444444" : "#CCCCCC"
                                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                                     Layout.fillHeight: true
                                 }
@@ -437,17 +361,17 @@ Window {
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
                                 Text {
-                                    text: qsTr("体裁：") + model.col5
+                                    text: qsTr("体裁：") + model.ticai
                                     font.pixelSize: 14
-                                    color: "#444444"
+                                    color: Material.theme === Material.Light ? "#444444" : "#CCCCCC"
                                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                                     Layout.preferredWidth: 80
                                     Layout.fillHeight: true
                                 }
                                 Text {
-                                    text: "第" + model.col6 + "/" + model.col4 + "句"
+                                    text: "第" + model.juind + "/" + model.jushu + "句"
                                     font.pixelSize: 14
-                                    color: "#444444"
+                                    color: Material.theme === Material.Light ? "#444444" : "#CCCCCC"
                                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                                     Layout.fillWidth: true
                                     Layout.fillHeight: true
@@ -460,7 +384,7 @@ Window {
                     Rectangle {
                         width: parent.width
                         height: 1
-                        color: "#eee"
+                        color: Material.theme === Material.Light ? "#eee" : "#222"
                         anchors.bottom: parent.bottom
                     }
                 }
@@ -529,6 +453,7 @@ Window {
         focus: true
 
         width: parent.width * 4 / 5
+        height: parent.height / 2
         anchors.centerIn: Overlay.overlay  // ✅ 始终居中
     }
 
@@ -551,7 +476,7 @@ Window {
         appColDict: colDict
 
         width: parent.width * 4 / 5
-        height: parent.height / 2
+        height: parent.height * 2 / 3
         anchors.centerIn: Overlay.overlay
 
         appSettings: settings
