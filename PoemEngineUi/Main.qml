@@ -2,7 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls.Material 2.15
-import Qt.labs.settings
+import PoemEngine 1.0
 
 
 Window {
@@ -12,7 +12,7 @@ Window {
 
     property int text_default_height: 32
 
-    Material.theme: settings.theme
+    Material.theme: AppSettings.theme
     Material.accent: Material.LightBlue
 
     color: Material.background
@@ -52,30 +52,10 @@ Window {
         "句序": 6
     }
 
-    Settings {
-        id: settings
-        category: "UserPreferences"
-        property string languageCode    : ""
-        property int    theme           : 2
-        property bool   strict_ju       : false
-        property bool   strict_pz       : false
-        property bool   strict_title    : true
-        property bool   strict_author   : true
-        property bool   strict_ticai    : true
-        property int    sort1           : 3
-        property bool   asc1            : true
-        property int    sort2           : 2
-        property bool   asc2            : true
-        property int    sort3           : 7
-        property bool   asc3            : true
-        property bool   disp_pz         : true
-        property bool   general_search  : true
-        // property
-    }
-
     Component.onCompleted: {
-        console.error("QML DEBUG:", "Lauguage Code:", settings.languageCode)
-        interf.setLanguage(settings.languageCode)
+        const keys = Object.keys(AppSettings);
+
+        interf.setLanguage(AppSettings.languageCode)
     }
 
     Connections {
@@ -271,15 +251,14 @@ Window {
                                  inputJushu.text,
                                  inputTicai.text,
                                  inputJuind.text],
-                                 [settings.strict_ju,
-                                 settings.strict_pz,
-                                 settings.strict_title,
-                                 settings.strict_author,
+                                 [AppSettings.strictJu,
+                                 AppSettings.strictPz,
+                                 AppSettings.strictTitle,
+                                 AppSettings.strictAuthor,
                                  false,
                                  false,
-                                 settings.strict_ticai,
+                                 AppSettings.strictTicai,
                                  false])
-                    // poemManager.query(searchInput.text)
                 }
                 // Layout.preferredWidth: 60
             }
@@ -334,7 +313,7 @@ Window {
 
                             ju: model.ju
                             pz: model.pz
-                            dispPz: settings.disp_pz
+                            dispPz: AppSettings.dispPz
 
                         }
 
@@ -479,7 +458,7 @@ Window {
         height: parent.height * 2 / 3
         anchors.centerIn: Overlay.overlay
 
-        appSettings: settings
+        // appSettings: settings
 
     }
 

@@ -45,7 +45,7 @@ public:
     }
 
     Q_INVOKABLE void setLanguage(const QString &languageCode);
-    Q_INVOKABLE void sort(QList<int> sortCols, QList<bool> ascs);
+    Q_INVOKABLE void sort(const QVariantList &sortFields);
 
 signals:
     void labTextChanged();

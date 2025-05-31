@@ -21,11 +21,10 @@ public:
         this->invalidateFilter();
     }
 
-    void setSort(const QList<int> &sortCols, const QList<bool> &ascs)
+    void setSort(QList<std::pair<int, bool> > sortFields)
     {
-        qCritical() << "C++ DEBUG:" << __func__ << ":" << sortCols << ascs;
-        m_sortCols = sortCols;
-        m_ascs = ascs;
+        qCritical() << "C++ DEBUG:" << __func__ << ":" << sortFields;
+        m_sortFields = sortFields;
         // for(auto &i : sortCols)
         //     qCritical() << data(index(10, 0), Qt::UserRole + i);
         beginResetModel();
@@ -38,10 +37,10 @@ protected:
         // qDebug() << source_left << source_right;
         bool ok;
 
-        for(int i=0; i<m_sortCols.size(); i++)
+        for(auto &field : m_sortFields)
         {
-            auto col = m_sortCols[i]+Qt::UserRole+1;
-            auto &asc = m_ascs[i];
+            auto col = field.first + Qt::UserRole + 1;
+            auto asc = field.second;
 
             auto leftData = sourceModel()->data(source_left, col).toString();
             auto rightData = sourceModel()->data(source_right, col).toString();
@@ -78,8 +77,9 @@ protected:
 
 private:
     QSet<int> m_lines;
-    QList<int> m_sortCols = {1, 0, 6};
-    QList<bool> m_ascs = {true, true, true};
+    // QList<int> m_sortCols = {1, 0, 6};
+    // QList<bool> m_ascs = {true, true, true};
+    QList<std::pair<int, bool>> m_sortFields = {};
 };
 
 #endif // JUPROXYMODEL_H

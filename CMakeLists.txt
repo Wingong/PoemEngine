@@ -34,6 +34,7 @@ qt_add_qml_module(appPoemEngine
         PoemEngineUi/PopupPoem.qml
         PoemEngineUi/SettingsDialog.qml
         PoemEngineUi/PzTextItem.qml
+
     SOURCES
         poemmanager.cpp
         poemmanager.h
@@ -41,17 +42,22 @@ qt_add_qml_module(appPoemEngine
         qmlinterface.h
         juproxymodel.cpp
         juproxymodel.h
+        appsettings.h
+        appsettings.cpp
     RESOURCES
         CHANGELOG.md
         LICENSE.md
         THIRD_PARTY_LICENSES.txt
 )
 
-qt_add_resources(appPoemEngine "qtquickcontrols2_conf_resource"
-    PREFIX "/"
-    FILES
-        PoemEngineUi/qtquickcontrols2.conf
-)
+set_source_files_properties(AppSettings.qml
+    PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+
+# qt_add_resources(appPoemEngine "qtquickcontrols2_conf_resource"
+#     PREFIX "/"
+#     FILES
+#         PoemEngineUi/qtquickcontrols2.conf
+# )
 
 qt_add_resources(appPoemEngine "resources"
     PREFIX "/"

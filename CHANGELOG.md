@@ -1,5 +1,70 @@
 # 更新日志、知识点和踩坑记录
 
+## v0.0.6 - 重做设置、排序功能
+
+### 重做设置，用`QSettings`替代`Settings`，设置单例模式
+
+#### 调试设置
+
+- 在`main`函数中设置`setOrganizationName()、setApplicationName`确定项目名称，之后就不用再在设置中指定了。
+
+- 使用`adb`成功进入项目文件夹。
+
+    - 要先开`Debug`模式安装到手机上，再用`adb -s xxx shell`进入`adb`命令行。
+    
+    - 如果只连接了一个设备，可以不用`-s`。
+
+    - 在命令行中`run-as xxx.xxxx.xxxx`进入文件夹，然后`ls、cd`什么的。
+
+#### `QSettings`和单例模式
+
+- 折腾了两天，老是有问题，`Settings`没法处理列表。最后发现官网上说，`QML`的`Settings`从`Qt 6.5`开始弃用了。tmd，早说啊，我直接用`QSettings`了。
+
+    - 说废弃的：https://doc.qt.io/qt-6/qml-qt-labs-settings-settings.html
+
+    - 刚刚发现，https://doc.qt.io/qt-6/qml-qtcore-settings.html 没废弃，废弃的是`Qt.labs.settings`。不过没`QSettings`好使，不改了。
+
+- 设置单例模式，很方便，在头文件里像下面一样写就行。其他啥操作都不用。
+
+    ```C++
+    Q_OBJECT
+    QML_SINGLETON
+    QML_ELEMENT
+    ```
+
+    - 官网例程：https://doc.qt.io/qt-6/qml-singleton.html
+
+- 使用 GPT 给的宏`#define SETTING_ACCESSOR(TYPE, CATEGORY, NAME, NAMECAP, DEFAULT)`，批量生成设置。好用。
+
+- 现在排序设置叫`sortFields`，是个`[{col: xxx, asc: xxx}, ...]`的结构。
+
+- 设置现在统一采用驼峰命名法。
+
+- `QmlInterface`和`PoemManager`的对应接口进行更改。
+
+### 设置窗口更新排序部分 `SettingsDialog.qml`
+
+- 删除之前的排序`ComboBox`和`CheckBox`，使用`Layout+Delegate`批量生成。
+
+- 设计`getFilteredModels()`方法更新所有`ComboBox`的模型。
+
+    - 现在通过从`index === 0`开始，逐个筛除选中项。
+
+- `Component.onCompleted`中设置初始模型，并排序一次。
+
+- 设计各处读写方法。修改因为驼峰命名法需要变动的名字。
+
+### 坑
+
+- `import Model`和直接使用属性时，报一大堆 Warning 。原因未知，但是首选项 - Qt Quick - QML/JS Editing - QML Language Server 关掉可以不显示。
+
+- 控件可以读父对象`Repeater`的`index`和`modelData`，但`index`可能重名，搞个属性接一下可以避免问题。
+
+### 吹牛
+
+- 端午节！抄了湘夫人。
+
+
 ## v0.0.5 - 大范围更新，添加诗文文字点击、韵部显示，添加平水韵，统一平仄渲染组件，新增主题/查询设置，大幅修改查询逻辑
 
 ### 数据源更新

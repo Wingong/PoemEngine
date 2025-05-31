@@ -21,9 +21,15 @@ void QmlInterface::setLanguage(const QString &languageCode)
     }
 }
 
-void QmlInterface::sort(QList<int> sortCols, QList<bool> ascs)
+void QmlInterface::sort(const QVariantList &sortFields)
 {
-    m_proxyModel.setSort(sortCols, ascs);
+    QList<std::pair<int, bool>> ret;
+    for(auto &var : sortFields)
+    {
+        auto pair = var.toMap();
+        ret.append({pair["col"].toInt(), pair["asc"].toBool()});
+    }
+    m_proxyModel.setSort(ret);
 }
 
 void QmlInterface::onTableFirst(const QStringList &header, const QStringList &headerVar, const QList<QStringList> &result)

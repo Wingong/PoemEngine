@@ -2,7 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls.Material 2.15
-import Qt.labs.settings
+import PoemEngine 1.0
 
 Dialog {
     id: root
@@ -14,62 +14,84 @@ Dialog {
 
     property var appTrDict: null
     property var appColDict: null
-    property var appSettings: null
+    // property var  AppSettings: null
 
-    function findIndexByValue(value) {
-        for (var i = 0; i < sortOptionsModel.count; ++i) {
-            if (sortOptionsModel.get(i).value === value) {
-                console.error("QML DEBUG: findIndexByValue: ", value, i)
+    property int numSortFields: 3
+    property var sortFieldModels: []
+
+    property var sortOptionsModel: [
+        { text: qsTr("诗题"), value: 0 },
+        { text: qsTr("作者"), value: 1 },
+        { text: qsTr("诗句"), value: 2 },
+        { text: qsTr("平仄"), value: 7 },
+        { text: qsTr("言数"), value: 3 },
+        { text: qsTr("句数"), value: 4 },
+        { text: qsTr("体裁"), value: 5 },
+        { text: qsTr("句序"), value: 6 },
+    ]
+
+    // 通过 value 查找 index
+    function findIndexByValue(index, value) {
+        if (index >= sortFieldModels.length) {
+            return -1
+        }
+
+        let model_i = sortFieldModels[index];
+        for (var i = 0; i < model_i.length; ++i) {
+            if (model_i[i].value === value) {
+                // console.error("QML DEBUG: findIndexByValue: ", value, i)
                 return i;
             }
         }
-        return 0;
+        return -1;
     }
 
-    function getFilteredModel(excludedValues) {
-        var filtered = [];
-        for (var i = 0; i < sortOptionsModel.count; ++i) {
-            var item = sortOptionsModel.get(i);
-            if (excludedValues.indexOf(item.value) === -1) {
-                filtered.push({ text: item.text, value: item.value });
-            }
+    // 更新排序模型
+    function getFilteredModels() {
+        if ( AppSettings.sortFields === null) {
+             AppSettings.sortFields = []
         }
-        return filtered;
-    }
-
-    function updateComboBoxModel(comboBox, values) {
-        var newModel = getFilteredModel(values);
-        console.error("QML DEBUG:", "updateComboBoxModel:", newModel, comboBox.currentText, comboBox.currentValue, values)
-        comboBox.model = newModel
-
-        // 检查当前文本是否仍存在于新模型中
-        if (newModel.indexOf(comboBox.currentText) === -1) {
-            // 如果不在，则选择第一项
-            if (newModel.length > 0) {
-                comboBox.currentIndex = 0;
-            } else {
-                comboBox.currentIndex = -1;  // 空模型时清空选择
-            }
+        for (var i= AppSettings.sortFields.length; i < numSortFields; i ++) {
+             AppSettings.sortFields.push({col:-1, asc:true});
         }
+
+        let newModels = []
+        let excluded = new Set()
+        for (var i=0; i < numSortFields; i ++) {
+            newModels.push(sortOptionsModel.filter(item => !excluded.has(item.value)))
+
+            excluded.add( AppSettings.sortFields[i].col )
+        }
+
+        return newModels
     }
 
-    ListModel {
-        id: sortOptionsModel
-        ListElement { text: qsTr("诗题"); value: 0 }
-        ListElement { text: qsTr("作者"); value: 1 }
-        ListElement { text: qsTr("诗句"); value: 2 }
-        ListElement { text: qsTr("平仄"); value: 7 }
-        ListElement { text: qsTr("言数"); value: 3 }
-        ListElement { text: qsTr("句数"); value: 4 }
-        ListElement { text: qsTr("体裁"); value: 5 }
-        ListElement { text: qsTr("句序"); value: 6 }
+    // 部件完成
+    Component.onCompleted: {
+        console.error(" AppSettings.sortFields: ",  AppSettings.sortFields)
+
+        sortFieldModels = getFilteredModels()
+
+        interf.sort(AppSettings.sortFields)
+
+        let s = ""
+        for (var field of AppSettings.sortFields) {
+            s += JSON.stringify(field) + ","
+        }
+        s += "\n"
+        for (var mod of newModels) {
+            s += JSON.stringify(mod) + ','
+        }
+        console.error(" AppSettings.sortFields: ", s/*, sortOptionsModel, sortFieldModels*/)
     }
 
+    // 主布局
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
         // anchors.margins: 16
 
+        // 排序标题
         Label {
             text: qsTr("排序")
             topPadding: 15
@@ -80,149 +102,53 @@ Dialog {
             font.pointSize: 16
         }
 
+        // 排序控件 ComboBox 和 CheckBox
         RowLayout {
             spacing: 10
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            // 第1排序项
-            ColumnLayout {
-                spacing: 5
-                Layout.fillWidth: true
-                Layout.fillHeight: true
+            // 使用 Repeater 重复 numSortFields 次
+            Repeater {
+                model: root.numSortFields
 
-                ComboBox {
-                    id: comboBox1
-                    font.pointSize: 14
-                    leftPadding: 0
-                    rightPadding: 0
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    textRole: "text"
-                    valueRole: "value"
-                    model: sortOptionsModel
-                    currentIndex: findIndexByValue(appSettings.sort1)
+                delegate: ColumnLayout {
+                    id: dele
+                    property int i: index
+                    ComboBox {
+                        font.pointSize: 14
+                        leftPadding: 0
+                        rightPadding: 0
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        textRole: "text"
+                        valueRole: "value"
+                        model: dele.i < sortFieldModels.length ? sortFieldModels[dele.i] : null
+                        currentIndex: findIndexByValue(index, AppSettings.sortFields[index].col)
+                        onActivated: {
+                            let updated = AppSettings.sortFields.map(item => ({ col: item.col, asc: item.asc }))
+                            updated[dele.i]["col"] = currentValue
+                            AppSettings.sortFields = updated
+                            sortFieldModels = getFilteredModels()
+                            interf.sort(updated)
+                            console.error("sortFields index: ", dele.i, currentValue, updated[dele.i]["col"], JSON.stringify(updated), JSON.stringify(AppSettings.sortFields[dele.i]))
+                        }
 
-                    onActivated: {
-                        updateComboBoxModel(comboBox2, [comboBox1.currentValue]);
-                        updateComboBoxModel(comboBox3, [comboBox1.currentValue, comboBox2.currentValue]);
-
-                        appSettings.sort1 = comboBox1.currentValue
-                        appSettings.sort2 = comboBox2.currentValue
-                        appSettings.sort3 = comboBox3.currentValue
-
-                        console.error("QML DEBUG: comboBox1: sort value: ", comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue)
-                        console.error("QML DEBUG: comboBox1: sort text: ", comboBox1.currentText, comboBox2.currentText, comboBox3.currentText)
-                        appInterf.sort([comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue],
-                                    [appSettings.asc1, appSettings.asc2, appSettings.asc3])
                     }
-                }
 
-                CheckBox {
-                    id: checkBox1
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    text: qsTr("升序")
-                    font.pixelSize: 16
-                    checked: appSettings.asc1
-                    onCheckedChanged: {
-                        appSettings.asc1 = checked
-
-                        console.error("QML DEBUG: checkBox1: sort value: ", comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue)
-                        console.error("QML DEBUG: checkBox1: sort text: ", comboBox1.currentText, comboBox2.currentText, comboBox3.currentText)
-                        appInterf.sort([comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue],
-                                    [appSettings.asc1, appSettings.asc2, appSettings.asc3])
-                    }
-                }
-            }
-
-            // 第2排序项
-            ColumnLayout {
-                spacing: 5
-
-                ComboBox {
-                    id: comboBox2
-                    font.pointSize: 14
-                    leftPadding: 0
-                    rightPadding: 0
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    textRole: "text"
-                    valueRole: "value"
-                    model: getFilteredModel([comboBox1.currentValue])
-                    currentIndex: findIndexByValue(appSettings.sort2)
-
-                    onActivated: {
-                        updateComboBoxModel(comboBox3, [comboBox1.currentValue, comboBox2.currentValue]);
-
-                        appSettings.sort2 = comboBox2.currentValue
-                        appSettings.sort3 = comboBox3.currentValue
-
-                        console.error("QML DEBUG: comboBox2: sort value: ", comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue)
-                        console.error("QML DEBUG: comboBox2: sort text: ", comboBox1.currentText, comboBox2.currentText, comboBox3.currentText)
-                        appInterf.sort([comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue],
-                                    [appSettings.asc1, appSettings.asc2, appSettings.asc3])
-                    }
-                }
-
-                CheckBox {
-                    id: checkBox2
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    text: qsTr("升序")
-                    font.pixelSize: 16
-                    checked: appSettings.asc2
-                    onCheckedChanged: {
-                        appSettings.asc2 = checked
-
-                        console.error("QML DEBUG: checkBox2: sort value: ", comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue)
-                        console.error("QML DEBUG: checkBox2: sort text: ", comboBox1.currentText, comboBox2.currentText, comboBox3.currentText)
-                        appInterf.sort([comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue],
-                                    [appSettings.asc1, appSettings.asc2, appSettings.asc3])
-                    }
-                }
-            }
-
-            // 第3排序项
-            ColumnLayout {
-                spacing: 5
-
-                ComboBox {
-                    id: comboBox3
-                    font.pointSize: 14
-                    leftPadding: 0
-                    rightPadding: 0
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    textRole: "text"
-                    valueRole: "value"
-                    model: getFilteredModel([comboBox1.currentValue, comboBox2.currentValue])
-                    currentIndex: findIndexByValue(appSettings.sort3)
-
-                    onActivated: {
-                        appSettings.sort3 = comboBox3.currentValue
-
-                        console.error("QML DEBUG: comboBox3: sort value: ", comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue)
-                        console.error("QML DEBUG: comboBox3: sort text: ", comboBox1.currentText, comboBox2.currentText, comboBox3.currentText)
-                        appInterf.sort([comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue],
-                                    [appSettings.asc1, appSettings.asc2, appSettings.asc3])
-                    }
-                }
-
-                CheckBox {
-                    id: checkBox3
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    text: qsTr("升序")
-                    font.pixelSize: 16
-                    checked: appSettings.asc3
-                    onCheckedChanged: {
-                        appSettings.asc3 = checked
-
-                        console.error("QML DEBUG: checkBox3: sort value: ", comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue)
-                        console.error("QML DEBUG: checkBox3: sort text: ", comboBox1.currentText, comboBox2.currentText, comboBox3.currentText)
-                        appInterf.sort([comboBox1.currentValue, comboBox2.currentValue, comboBox3.currentValue],
-                                    [appSettings.asc1, appSettings.asc2, appSettings.asc3])
+                    CheckBox {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        text: qsTr("升序")
+                        font.pixelSize: 16
+                        checked: AppSettings.sortFields[dele.i].asc
+                        onCheckedChanged: {
+                            let updated = AppSettings.sortFields.slice();
+                            updated[dele.i].asc = checked
+                            AppSettings.sortFields = updated
+                            sortFieldModels = getFilteredModels()
+                            interf.sort(updated)
+                        }
                     }
                 }
             }
@@ -234,6 +160,7 @@ Dialog {
             color: Material.theme === Material.Light ? "#ccc" : "#444" // 分隔线颜色
         }
 
+        // 精确搜索标题
         Label {
             text: qsTr("精确搜索")
             topPadding: 15
@@ -244,6 +171,7 @@ Dialog {
             font.pointSize: 16
         }
 
+        // 诗题、诗句、平仄
         RowLayout {
             spacing: 0
             CheckBox {
@@ -251,27 +179,28 @@ Dialog {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 text: appTrDict["诗题"]
-                checked: appSettings.strict_title
-                onCheckedChanged: appSettings.strict_title = checked
+                checked:  AppSettings.strictTitle
+                onCheckedChanged:  AppSettings.strictTitle = checked
             }
             CheckBox {
                 id: cbx_ju
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 text: appTrDict["诗句"]
-                checked: appSettings.strict_ju
-                onCheckedChanged: appSettings.strict_ju = checked
+                checked:  AppSettings.strictJu
+                onCheckedChanged:  AppSettings.strictJu = checked
             }
             CheckBox {
                 id: cbx_pz
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 text: appTrDict["平仄"]
-                checked: appSettings.strict_pz
-                onCheckedChanged: appSettings.strict_pz = checked
+                checked:  AppSettings.strictPz
+                onCheckedChanged:  AppSettings.strictPz = checked
             }
         }
 
+        // 作者、体裁
         RowLayout{
             spacing: 0
             CheckBox {
@@ -279,16 +208,16 @@ Dialog {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 text: appTrDict["作者"]
-                checked: appSettings.strict_author
-                onCheckedChanged: appSettings.strict_author = checked
+                checked:  AppSettings.strictAuthor
+                onCheckedChanged:  AppSettings.strictAuthor = checked
             }
             CheckBox {
                 id: cbx_ticai
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 text: appTrDict["体裁"]
-                checked: appSettings.strict_ticai
-                onCheckedChanged: appSettings.strict_ticai = checked
+                checked:  AppSettings.strictTicai
+                onCheckedChanged:  AppSettings.strictTicai = checked
             }
 
         }
@@ -299,6 +228,7 @@ Dialog {
             color: Material.theme === Material.Light ? "#ccc" : "#444"
         }
 
+        // 语言和提示
         Label {
             text: qsTr("语言和显示")
             topPadding: 15
@@ -309,6 +239,7 @@ Dialog {
             font.pointSize: 16
         }
 
+        // 示例字
         RowLayout {
             Layout.alignment: Qt.AlignHCenter
             Layout.bottomMargin: 0
@@ -327,7 +258,7 @@ Dialog {
                         fontSize: 22
                         ju: rep.ju[index]
                         pz: rep.pz[index]
-                        dispPz: appSettings.disp_pz
+                        dispPz:  AppSettings.dispPz
                     }
 
                     Label {
@@ -341,6 +272,7 @@ Dialog {
             }
         }
 
+        // 其他设置
         RowLayout {
             spacing: 5
             Layout.fillWidth: true
@@ -350,16 +282,16 @@ Dialog {
                 Layout.fillHeight: true
                 id: optPz
                 text: qsTr("平仄分色")
-                checked: appSettings.disp_pz
-                onCheckedChanged: appSettings.disp_pz = checked
+                checked:  AppSettings.dispPz
+                onCheckedChanged:  AppSettings.dispPz = checked
             }
 
             CheckBox {
                 Layout.fillHeight: true
                 id: opt2
                 text: qsTr("繁简、异体通搜")
-                checked: appSettings.general_search
-                onCheckedChanged: appSettings.general_search = checked
+                checked:  AppSettings.variantSearch
+                onCheckedChanged:  AppSettings.variantSearch = checked
             }
         }
 
@@ -372,16 +304,16 @@ Dialog {
                 Layout.fillHeight: true
                 id: languageSelector
                 model: [qsTr("简体"), qsTr("繁體")]
-                currentIndex: (appSettings.languageCode === "zh_CN") ? 0 : 1
+                currentIndex: ( AppSettings.languageCode === "zh_CN") ? 0 : 1
                 onCurrentIndexChanged: {
                     if(currentIndex === 0)
                     {
-                        appSettings.languageCode = "zh_CN"
+                         AppSettings.languageCode = "zh_CN"
                         appInterf.setLanguage("zh_CN")
                     }
                     else
                     {
-                        appSettings.languageCode = "zh_MO"
+                         AppSettings.languageCode = "zh_MO"
                         appInterf.setLanguage("zh_MO")
                     }
                 }
@@ -391,19 +323,12 @@ Dialog {
                 Layout.fillHeight: true
                 id: themeSelector
                 model: [qsTr("浅色"), qsTr("暗色"), qsTr("跟随系统")]
-                currentIndex: appSettings.theme
+                currentIndex:  AppSettings.theme
                 onCurrentIndexChanged: {
-                    appSettings.theme = currentIndex
+                     AppSettings.theme = currentIndex
                     Material.theme = currentIndex
                 }
             }
         }
-
-        // CheckBox {
-        //     Layout.fillHeight: true
-        //     id: darkMode
-        //     text: qsTr("启用深色模式")
-        //     checked: false
-        // }
     }
 }

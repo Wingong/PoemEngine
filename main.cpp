@@ -28,6 +28,10 @@ void listResources(const QString &path, int depth = 0) {
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+    app.setOrganizationName("Drail Ins");
+    app.setOrganizationDomain("www.drail-2023.asia");
+    app.setApplicationName("Poem Engine");
+
     QQmlApplicationEngine engine;
 
     // 子线程诗歌检索器
