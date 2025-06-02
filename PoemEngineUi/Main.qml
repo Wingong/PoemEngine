@@ -62,15 +62,17 @@ Window {
         target: interf
         function onPoemResultReceived(poem) {
             popup_Poem.poem = poem
-            popup_Poem.yuns = null
             popup_Poem.zi_disp = ""
+            popup_Poem.lineSelected = -1
+            popup_Poem.ziSelected = -1
             popup_Poem.open()
+            console.error("QML DEBUG: 詩: ", JSON.stringify(poem))
         }
 
-        function onYunsResultReceived(yuns) {
-            popup_Poem.yuns = yuns
-            // console.error("QML DEBUG: Yuns: ", yuns)
-        }
+        // function onYunsResultReceived(yuns) {
+        //     popup_Poem.yuns = yuns
+        //     console.error("QML DEBUG: Yuns: ", yuns)
+        // }
     }
 
     ColumnLayout {
@@ -299,6 +301,7 @@ Window {
                             popup_Poem.ticai    = model.ticai
                             popup_Poem.juind    = model.juind
                             popup_Poem.pz       = model.pz
+                            popup_Poem.yun      = model.yun
                         }
                     }
 

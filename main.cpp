@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     thread->start();
 
     // 接口类
-    QmlInterface *interf = new QmlInterface(app, engine);
+    QmlInterface *interf = new QmlInterface(app, engine, QString(":/data/psy-yunbu.json"));
 
     QObject::connect(manager, &PoemManager::progSet, interf, &QmlInterface::onFormat);
     QObject::connect(manager, &PoemManager::dataHeaderLoaded, interf, &QmlInterface::onTableFirst);
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 
     QObject::connect(interf, &QmlInterface::querySent, manager, &PoemManager::onQuery);
     QObject::connect(interf, &QmlInterface::searchSent, manager, &PoemManager::onSearchById);
-    QObject::connect(interf, &QmlInterface::yunsSearchSent, manager, &PoemManager::osSearchYunsByZi);
+    // QObject::connect(interf, &QmlInterface::yunsSearchSent, manager, &PoemManager::searchYunsByZi);
     QObject::connect(manager, &PoemManager::queryEnd, interf, &QmlInterface::onFilter);
     QObject::connect(manager, &PoemManager::searchEnd, interf, &QmlInterface::onPoemSearched);
     QObject::connect(manager, &PoemManager::yunsSearchEnd, interf, &QmlInterface::onYunsSearched);
@@ -70,8 +70,9 @@ int main(int argc, char *argv[])
 
     QMetaObject::invokeMethod(manager, &PoemManager::load,
                               QString(":/data/qts.csv"),
-                              QString(":/data/ju_tab.csv"),
-                              QString(":/data/psy.json"),
+                              QString(":/data/ju-tab.csv"),
+                              QString(":/data/psy-map.json"),
+                              QString(":/data/psy-yunbu.json"),
                               QString(":/data/unihan-extend.json"));
     return app.exec();
 }

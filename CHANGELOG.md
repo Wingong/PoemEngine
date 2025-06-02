@@ -1,5 +1,104 @@
 # 更新日志、知识点和踩坑记录
 
+## v0.0.7 - 实现诗平仄显示、选中字标记
+
+### 更新数据源：平水韵字表、韵部，修复诗歌韵码 bug
+
+#### 更新平水韵字表、韵部文件
+
+- 为 `D:/诗词格律` 创建 `git`。
+
+- 修改平水韵读写方式。现在文件分为`psy-map.json`和`psy-yunbu.json`。
+
+    - 前者将每个字映射到对应韵名，如`"空":"東董送"`。
+
+    - 后者按顺序存放韵名到韵目的映射，如`"東":{"聲調":"平聲","序號":"上一","韻名":"東","韻碼":1}`。
+
+#### 修复诗歌韵码 bug
+
+- 之前上声和入声，同意序号的韵目混淆，如`上声五蟹`和`入声五物`。
+
+- 之前`wasp_psy_local.py`中写：
+
+    ```python
+    elif m[6] == '入聲':
+        n += 300
+    ```
+
+- 现在改成`300`就解决了。
+
+### 接口更新
+
+#### 更改平水韵读写接口
+
+- 现在`psy-yunbu.json`读入`QmlInterface`中，`QML`直接用`interf.psy`读取韵部。
+
+- 子进程、接口和`QML`之间传递的信息不再使用完整韵目。
+
+- 现在这样等于忽视了单字各韵的注释，之后再说。
+
+#### 更改`PoemManager`和`QmlInterface`的接口
+
+- `PoemManager::dataHeader`新增`韵脚`字段，`dataHeaderVar`增加`yun`。
+
+- `searchEnd()`和对应槽函数的参数从`const QMap<QString, QString> &poem`改成`const QVariantMap &poem`。
+
+    - 其中包括`韵脚`和`韵目`字段。
+
+- 删除`searchYunsByZi`相关功能。现在各字韵名都通过`ret["韻目"]`传递到`searchEnd()`的参数中，不再需要二次搜索。
+
+### 界面更新
+
+#### 更新`PzTextItem.qml`文件
+
+- 新增`fontBold`、`textHorizontalAlignment`、`textVerticalAlignment`（未使用）、`verticalMargin`属性。
+
+- 现在支持加粗、水平各方向对齐、垂直偏移等功能。
+
+#### 重整`get_zi_pz()`函数 `PopupPoem.qml`
+
+- 现在输入一个字，输出它对应的平仄。
+
+#### 实现选中字高亮 `PopupPoem.qml`
+
+- 现在使用`lineSelected`、`lineSelected`记录选中字的行、列，实现选中字高亮。
+
+    - 在第一层`delegate`中使用`property int lineIndex: index`记录当前编号（行号）。
+
+    - 在第二层中使用`i: lineIndex`、`j: index`记录行列号。
+
+- 设置`visible`之后，一个字一个矩形也不卡。
+
+- 限制`ScrollView`的左右`margin`宽度。
+
+#### 韵脚显示 `PopupPoem.qml`
+
+- 使用`PzTextItem`显示韵脚。设置其垂直偏置=0（默认为-2），可以有效对齐其他`Label`。
+
+- 单字显示部分成功设置默认高度。
+
+    - 之前如果行数少，这一块就会很高。
+
+    - 应该设置`Flow`的`Layout.preferredHeight: implicitHeight`。
+
+- 微调体裁、出律度文本。
+
+#### 增加一道分界线
+
+### 坑
+
+- [实现选中字高亮](#实现选中字高亮)
+
+    - 外部没有明确定义的属性穿不进来，比如`index`，需要在外层定义一个属性接一下。
+
+- [韵脚显示](#韵脚显示)
+
+    - `Flow`内部的排版设置不管用。最好整体设置整个`Flow`的。
+# 吹牛
+
+- 在国图！今天假期最后一天。下周去天津。
+
+
 ## v0.0.6 - 重做设置、排序功能
 
 ### 重做设置，用`QSettings`替代`Settings`，设置单例模式

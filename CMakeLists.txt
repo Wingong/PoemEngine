@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(PoemEngine VERSION 0.0.5 LANGUAGES CXX)
+project(PoemEngine VERSION 0.0.7 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -48,6 +48,9 @@ qt_add_qml_module(appPoemEngine
         CHANGELOG.md
         LICENSE.md
         THIRD_PARTY_LICENSES.txt
+        QML_FILES
+        RESOURCES
+        QML_FILES PoemEngineUi/DebugOutline.qml
 )
 
 set_source_files_properties(AppSettings.qml
@@ -63,8 +66,9 @@ qt_add_resources(appPoemEngine "resources"
     PREFIX "/"
     FILES
         data/qts.csv
-        data/ju_tab.csv
-        data/psy.json
+        data/ju-tab.csv
+        data/psy-map.json
+        data/psy-yunbu.json
         data/unihan-extend.json
 )
 

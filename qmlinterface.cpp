@@ -1,12 +1,29 @@
 #include "qmlinterface.h"
+#include <QFile>
+#include <QJsonDocument>
 
-QmlInterface::QmlInterface(QGuiApplication &app, QQmlApplicationEngine &engine, QObject *parent)
+QmlInterface::QmlInterface(QGuiApplication &app, QQmlApplicationEngine &engine, const QString &psy_yunbu_path, QObject *parent)
     : QObject(parent)
     , m_app(app)
     , m_engine(engine)
 {
     m_poemResult["內容"] = QString();
     m_proxyModel.setSourceModel(&m_model);
+
+    {
+        QFile f_yunbu(psy_yunbu_path);
+        f_yunbu.open(QIODevice::ReadOnly);
+        QByteArray jsonData = f_yunbu.readAll();
+        QJsonDocument doc = QJsonDocument::fromJson(jsonData);
+        auto yunbu_map = doc.toVariant().toMap();
+        f_yunbu.close();
+
+        for(auto &[zi, yun] : yunbu_map.toStdMap())
+        {
+            psy_yunbu[zi] = yun.toMap();
+        }
+        qDebug() << "韵部: " << psy_yunbu;
+    }
 }
 
 void QmlInterface::setLanguage(const QString &languageCode)
@@ -79,13 +96,13 @@ void QmlInterface::onFilter(const QList<int> &lines)
     m_proxyModel.sort(0);
 }
 
-void QmlInterface::onPoemSearched(const QMap<QString, QString> &poem)
+void QmlInterface::onPoemSearched(const QVariantMap &poem)
 {
-    m_poemResult.clear();
-    for(auto &[key, val] : poem.toStdMap())
-        m_poemResult[key] = val;
-    qCritical() << "C++ DEBUG:" << __func__ << ":" << m_poemResult;
-    emit poemResultReceived(m_poemResult);
+    // m_poemResult.clear();
+    // for(auto &[key, val] : poem.toStdMap())
+    //     m_poemResult[key] = val;
+    // qCritical() << "C++ DEBUG:" << __func__ << ":" << poem;
+    emit poemResultReceived(poem);
 }
 
 void QmlInterface::onYunsSearched(const QList<QVariantMap> &yuns)

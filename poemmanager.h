@@ -25,13 +25,14 @@ public:
     static QStringList dataHeaderVar;
 public slots:
     void load(const QString &qts_path = "://data/qts.csv",
-              const QString &jubiao_path = "://data/ju_tab.csv",
-              const QString &psy_path = "://data/psy.json",
+              const QString &jubiao_path = "://data/ju-tab.csv",
+              const QString &psy_path = "://data/psy-map.json",
+              const QString &psy_yunbu_path = "://data/psy-yunbu.json",
               const QString var_path = "://data/unihan-extend.json");
 
     void onQuery(const QVariantList &values, const QVariantList &stricts);
     void onSearchById(const QString &id);
-    void osSearchYunsByZi(const QChar &zi);
+    QString searchYunsByZi(const QChar &zi);
 signals:
     void debug(const QString information);
     void loadEnd(int lines);
@@ -40,7 +41,7 @@ signals:
     void dataHeaderLoaded(const QStringList &header, const QStringList &headerVar, const QList<QStringList> &result);
     void dataLoaded(const QList<QStringList> &result);
     void queryEnd(const QList<int> &lines);
-    void searchEnd(const QMap<QString, QString> &poem);
+    void searchEnd(const QVariantMap &poem);
     void yunsSearchEnd(const QList<QVariantMap> &yuns);
 
 private:
@@ -51,7 +52,8 @@ private:
 
     QMap<QString, QMap<QString, QList<int>>> to_jubiao;
 
-    QMap<QChar, QList<QVariantMap>> psy;
+    QMap<QChar, QString> psy_tab;
+    QMap<QChar, QVariantMap> psy_yunbu;
     QMap<QChar, QString> xvariants;
     QMap<QChar, QString> tradsimps;
 };

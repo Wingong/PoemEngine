@@ -12,12 +12,14 @@ class QmlInterface : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString labText READ labText NOTIFY labTextChanged)
+    Q_PROPERTY(QVariantMap psy READ psy CONSTANT)
     Q_PROPERTY(QStandardItemModel* model READ model CONSTANT)
     Q_PROPERTY(JuProxyModel* proxyModel READ proxyModel CONSTANT)
 public:
-    explicit QmlInterface(QGuiApplication &app, QQmlApplicationEngine &engine, QObject *parent = nullptr);
+    explicit QmlInterface(QGuiApplication &app, QQmlApplicationEngine &engine, const QString &psy_yunbu_path, QObject *parent = nullptr);
 
     QString labText() const {return m_labText;}
+    QVariantMap psy() const {return psy_yunbu;}
     QStandardItemModel *model() {return &m_model;}
     JuProxyModel *proxyModel() {return &m_proxyModel;}
 
@@ -60,7 +62,7 @@ public slots:
     void onTableFirst(const QStringList &header, const QStringList &headerVar, const QList<QStringList> &result);
     void onTable(const QList<QStringList> &result);
     void onFilter(const QList<int> &lines);
-    void onPoemSearched(const QMap<QString, QString> &poem);
+    void onPoemSearched(const QVariantMap &poem);
     void onYunsSearched(const QList<QVariantMap> &yuns);
     void onFormat(const QString &format, int max);
     void onEnd();
@@ -74,6 +76,8 @@ private:
     QStandardItemModel m_model;
     JuProxyModel m_proxyModel;
     QTranslator m_translator;
+
+    QVariantMap psy_yunbu;
 };
 
 #endif // QMLINTERFACE_H

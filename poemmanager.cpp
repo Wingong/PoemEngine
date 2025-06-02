@@ -7,8 +7,8 @@
 #include <QSet>
 #include <QJsonDocument>
 
-QStringList PoemManager::dataHeader = {"題目", "作者", "詩句", "言數", "句數", "體裁", "句序", "平仄", "id"};
-QStringList PoemManager::dataHeaderVar = {"title", "author", "ju", "yan", "jushu", "ticai", "juind", "pz", "id"};
+QStringList PoemManager::dataHeader = {"題目", "作者", "詩句", "言數", "句數", "體裁", "句序", "平仄", "id", "韻腳"};
+QStringList PoemManager::dataHeaderVar = {"title", "author", "ju", "yan", "jushu", "ticai", "juind", "pz", "id", "yun"};
 
 PoemManager::PoemManager(QObject *parent)
     : QObject{parent}
@@ -56,7 +56,7 @@ QStringList PoemManager::splitNums(const QString &str)
     return indexes.values();
 }
 
-void PoemManager::load(const QString &qts_path, const QString &jubiao_path, const QString &psy_path, const QString var_path)
+void PoemManager::load(const QString &qts_path, const QString &jubiao_path, const QString &psy_path, const QString &psy_yunbu_path, const QString var_path)
 {
     {
         emit progSet(tr("读取全唐诗……"), 0);
@@ -199,15 +199,33 @@ void PoemManager::load(const QString &qts_path, const QString &jubiao_path, cons
         auto psy_vmap = doc.toVariant().toMap();
         f_psy.close();
 
-        for(auto &[zi, yuns] : psy_vmap.toStdMap())
+        for(auto &[zi, yun] : psy_vmap.toStdMap())
         {
-            emit progSet(tr("读取平水韵……%1/%2字").arg(psy.size()).arg(psy_vmap.size()), 0);
-            for(auto &yun : yuns.toList())
-            {
-                psy[zi[0]].append(yun.toMap());
-            }
+            if(psy_tab.size() % 100 == 0)
+                emit progSet(tr("读取平水韵……%1/%2字").arg(psy_tab.size()).arg(psy_vmap.size()), 0);
+
+            psy_tab[zi[0]] = yun.toString();
         }
         // qDebug() << "psy: " << psy;
+    }
+
+    {
+        emit progSet(tr("读取平水韵韵部……"), 0);
+        QFile f_yunbu(psy_yunbu_path);
+        f_yunbu.open(QIODevice::ReadOnly);
+        QByteArray jsonData = f_yunbu.readAll();
+        QJsonDocument doc = QJsonDocument::fromJson(jsonData);
+        auto psy_yunbu = doc.toVariant().toMap();
+        f_yunbu.close();
+
+        for(auto &[zi, yun] : psy_yunbu.toStdMap())
+        {
+            if(psy_yunbu.size() % 100 == 0)
+                emit progSet(tr("读取平水韵韵部……%1/%2").arg(psy_yunbu.size()).arg(psy_yunbu.size()), 0);
+
+            psy_yunbu[zi[0]] = yun.toMap();
+        }
+        // qDebug() << "韵部: " << psy_yunbu;
     }
 
     {
@@ -224,7 +242,8 @@ void PoemManager::load(const QString &qts_path, const QString &jubiao_path, cons
             auto var_map = var_map_qvariant.toMap();
             xvariants[zi[0]] = var_map["kXSemantic"].toStringList().join("");
             tradsimps[zi[0]] = var_map["kTradSimp"].toStringList().join("");
-            emit progSet(tr("读取繁简、异体字……%1/%2字").arg(xvariants.size()).arg(tradsimp_vmap.size()), 0);
+            if(xvariants.size() % 1000 == 0)
+                emit progSet(tr("读取繁简、异体字……%1/%2字").arg(xvariants.size()).arg(tradsimp_vmap.size()), 0);
         }
         // qCritical() << "C++ DEBUG:" << __func__ << ":" << psy;
         // qDebug() << "异体字: " << xvariants;
@@ -469,24 +488,37 @@ void PoemManager::onQuery(const QVariantList &values, const QVariantList &strict
 void PoemManager::onSearchById(const QString &id)
 {
     auto poem = qts[id];
-    QMap<QString, QString> ret;
+    QVariantMap ret;
     for(auto &[key, val] : qts_header.toStdMap())
         ret[key] = poem[val];
+
+    QVariantMap yuns_map;
+
+    for(auto &zi : ret["內容"].toString())
+    {
+        if (!yuns_map.contains(zi))
+        {
+            yuns_map[zi] = searchYunsByZi(zi);
+        }
+    }
+
+    ret["韻目"] = yuns_map;
 
     emit searchEnd(ret);
 }
 
-void PoemManager::osSearchYunsByZi(const QChar &zi)
+QString PoemManager::searchYunsByZi(const QChar &zi)
 {
-    auto yuns = psy[zi];
+    auto yuns = psy_tab[zi];
+    QString ret;
     if(yuns.isEmpty())
     {
         // 异体字
         for(auto var : xvariants[zi])
         {
-            if(psy.contains(var))
+            if(psy_tab.contains(var))
             {
-                yuns = psy[var];
+                yuns = psy_tab[var];
                 break;
             }
         }
@@ -497,9 +529,9 @@ void PoemManager::osSearchYunsByZi(const QChar &zi)
         QString zi_list = tradsimps[zi];
         for(auto &var : tradsimps[zi])
         {
-            if(psy.contains(var))
+            if(psy_tab.contains(var))
             {
-                yuns = psy[var];
+                yuns = psy_tab[var];
                 break;
             }
             else
@@ -507,9 +539,9 @@ void PoemManager::osSearchYunsByZi(const QChar &zi)
                 for(auto &var_tradsimp : xvariants[var])
                 {
                     // 繁体字的异体字
-                    if(psy.contains(var_tradsimp))
+                    if(psy_tab.contains(var_tradsimp))
                     {
-                        yuns = psy[var_tradsimp];
+                        yuns = psy_tab[var_tradsimp];
                         break;
                     }
                 }
@@ -521,5 +553,7 @@ void PoemManager::osSearchYunsByZi(const QChar &zi)
         }
     }
 
-    emit yunsSearchEnd(yuns);
+    return yuns;
+
+    // emit yunsSearchEnd(yuns);
 }
