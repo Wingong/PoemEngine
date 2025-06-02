@@ -68,7 +68,7 @@ Dialog {
 
     // 部件完成
     Component.onCompleted: {
-        console.error(" AppSettings.sortFields: ",  AppSettings.sortFields)
+        // console.error(" AppSettings.sortFields: ",  AppSettings.sortFields)
 
         sortFieldModels = getFilteredModels()
 
@@ -79,10 +79,10 @@ Dialog {
             s += JSON.stringify(field) + ","
         }
         s += "\n"
-        for (var mod of newModels) {
+        for (var mod of sortFieldModels) {
             s += JSON.stringify(mod) + ','
         }
-        console.error(" AppSettings.sortFields: ", s/*, sortOptionsModel, sortFieldModels*/)
+        // console.error(" AppSettings.sortFields: ", s/*, sortOptionsModel, sortFieldModels*/)
     }
 
     // 主布局
@@ -160,6 +160,45 @@ Dialog {
             color: Material.theme === Material.Light ? "#ccc" : "#444" // 分隔线颜色
         }
 
+        // 搜索模式
+        Label {
+            text: qsTr("搜索模式")
+            topPadding: 15
+            bottomPadding: 10
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            verticalAlignment: Text.AlignVCenter
+            font.pointSize: 16
+        }
+
+        RowLayout{
+            Layout.bottomMargin: 10
+            ComboBox {
+                Layout.fillHeight: true
+                id: cbxSearchMode
+                model: [qsTr("诗句模式"), qsTr("全诗模式")]
+                currentIndex:  AppSettings.searchMode
+                onCurrentIndexChanged: {
+                    AppSettings.searchMode = currentIndex
+                    // Material.theme = currentIndex
+                }
+            }
+            CheckBox {
+                Layout.fillHeight: true
+                id: optVarSearch
+                text: qsTr("繁简、异体通搜")
+                checked:  AppSettings.variantSearch
+                onCheckedChanged:  AppSettings.variantSearch = checked
+            }
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 1
+            color: Material.theme === Material.Light ? "#ccc" : "#444" // 分隔线颜色
+        }
+
+
         // 精确搜索标题
         Label {
             text: qsTr("精确搜索")
@@ -175,26 +214,26 @@ Dialog {
         RowLayout {
             spacing: 0
             CheckBox {
-                id: cbx_title
+                id: cbxTitle
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                text: appTrDict["诗题"]
+                text: qsTr("诗题")
                 checked:  AppSettings.strictTitle
                 onCheckedChanged:  AppSettings.strictTitle = checked
             }
             CheckBox {
-                id: cbx_ju
+                id: cbxJu
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                text: appTrDict["诗句"]
+                text: qsTr("诗句")
                 checked:  AppSettings.strictJu
                 onCheckedChanged:  AppSettings.strictJu = checked
             }
             CheckBox {
-                id: cbx_pz
+                id: cbxPz
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                text: appTrDict["平仄"]
+                text: qsTr("平仄")
                 checked:  AppSettings.strictPz
                 onCheckedChanged:  AppSettings.strictPz = checked
             }
@@ -204,18 +243,18 @@ Dialog {
         RowLayout{
             spacing: 0
             CheckBox {
-                id: cbx_author
+                id: cbxAuthor
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                text: appTrDict["作者"]
+                text: qsTr("作者")
                 checked:  AppSettings.strictAuthor
                 onCheckedChanged:  AppSettings.strictAuthor = checked
             }
             CheckBox {
-                id: cbx_ticai
+                id: cbxTicai
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                text: appTrDict["体裁"]
+                text: qsTr("体裁")
                 checked:  AppSettings.strictTicai
                 onCheckedChanged:  AppSettings.strictTicai = checked
             }
@@ -285,14 +324,6 @@ Dialog {
                 checked:  AppSettings.dispPz
                 onCheckedChanged:  AppSettings.dispPz = checked
             }
-
-            CheckBox {
-                Layout.fillHeight: true
-                id: opt2
-                text: qsTr("繁简、异体通搜")
-                checked:  AppSettings.variantSearch
-                onCheckedChanged:  AppSettings.variantSearch = checked
-            }
         }
 
 
@@ -308,12 +339,12 @@ Dialog {
                 onCurrentIndexChanged: {
                     if(currentIndex === 0)
                     {
-                         AppSettings.languageCode = "zh_CN"
+                        AppSettings.languageCode = "zh_CN"
                         appInterf.setLanguage("zh_CN")
                     }
                     else
                     {
-                         AppSettings.languageCode = "zh_MO"
+                        AppSettings.languageCode = "zh_MO"
                         appInterf.setLanguage("zh_MO")
                     }
                 }
@@ -325,7 +356,7 @@ Dialog {
                 model: [qsTr("浅色"), qsTr("暗色"), qsTr("跟随系统")]
                 currentIndex:  AppSettings.theme
                 onCurrentIndexChanged: {
-                     AppSettings.theme = currentIndex
+                    AppSettings.theme = currentIndex
                     Material.theme = currentIndex
                 }
             }

@@ -31,12 +31,13 @@ public:
     SETTING_ACCESSOR(QString        , Ui    , languageCode  , LanguageCode  , ""    )
     SETTING_ACCESSOR(int            , Ui    , theme         , Theme         , 2     )
     SETTING_ACCESSOR(QVariantList   , Sort  , sortFields    , SortFields    , {}    )
+    SETTING_ACCESSOR(int            , Query , searchMode    , SearchMode    , 0     )
+    SETTING_ACCESSOR(bool           , Query , variantSearch , VariantSearch , true  )
     SETTING_ACCESSOR(bool           , Query , strictJu      , StrictJu      , false )
     SETTING_ACCESSOR(bool           , Query , strictPz      , StrictPz      , false )
     SETTING_ACCESSOR(bool           , Query , strictTitle   , StrictTitle   , true  )
     SETTING_ACCESSOR(bool           , Query , strictAuthor  , StrictAuthor  , true  )
     SETTING_ACCESSOR(bool           , Query , strictTicai   , StrictTicai   , true  )
-    SETTING_ACCESSOR(bool           , Query , variantSearch , VariantSearch , true  )
     SETTING_ACCESSOR(bool           , Disp  , dispPz        , DispPz        , true  )
 
 private:

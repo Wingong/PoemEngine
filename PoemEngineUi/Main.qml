@@ -10,7 +10,7 @@ Window {
     width: 480
     height: 640
 
-    property int text_default_height: 32
+    property int textDefaultHeight: 32
 
     Material.theme: AppSettings.theme
     Material.accent: Material.LightBlue
@@ -61,16 +61,16 @@ Window {
     Connections {
         target: interf
         function onPoemResultReceived(poem) {
-            popup_Poem.poem = poem
-            popup_Poem.zi_disp = ""
-            popup_Poem.lineSelected = -1
-            popup_Poem.ziSelected = -1
-            popup_Poem.open()
+            popupPoem.poem = poem
+            popupPoem.zi_disp = ""
+            popupPoem.lineSelected = -1
+            popupPoem.ziSelected = -1
+            popupPoem.open()
             console.error("QML DEBUG: 詩: ", JSON.stringify(poem))
         }
 
         // function onYunsResultReceived(yuns) {
-        //     popup_Poem.yuns = yuns
+        //     popupPoem.yuns = yuns
         //     console.error("QML DEBUG: Yuns: ", yuns)
         // }
     }
@@ -95,7 +95,7 @@ Window {
                 bottomPadding: 0
                 Layout.fillWidth: true
                 placeholderText: qsTr("送杜少府之任蜀州")
-                Layout.preferredHeight: root.text_default_height
+                Layout.preferredHeight: root.textDefaultHeight
                 onAccepted: {
                     btnQuery.click()
                 }
@@ -112,7 +112,7 @@ Window {
                 leftPadding: 10
                 rightPadding: 10
                 placeholderText: "5,7"
-                Layout.preferredHeight: root.text_default_height
+                Layout.preferredHeight: root.textDefaultHeight
                 Layout.preferredWidth: 60
             }
 
@@ -128,7 +128,7 @@ Window {
                 leftPadding: 10
                 rightPadding: 10
                 placeholderText: "8-9"
-                Layout.preferredHeight: root.text_default_height
+                Layout.preferredHeight: root.textDefaultHeight
                 Layout.preferredWidth: 60
                 onAccepted: {
                     btnQuery.click()
@@ -150,7 +150,7 @@ Window {
                 bottomPadding: 0
                 Layout.fillWidth: true
                 placeholderText: qsTr("白居易")
-                Layout.preferredHeight: root.text_default_height
+                Layout.preferredHeight: root.textDefaultHeight
                 onAccepted: {
                     btnQuery.click()
                 }
@@ -167,7 +167,7 @@ Window {
                 leftPadding: 10
                 rightPadding: 10
                 placeholderText: qsTr("律诗")
-                Layout.preferredHeight: root.text_default_height
+                Layout.preferredHeight: root.textDefaultHeight
                 Layout.preferredWidth: 60
                 onAccepted: {
                     btnQuery.click()
@@ -185,7 +185,7 @@ Window {
                 leftPadding: 10
                 rightPadding: 10
                 placeholderText: "1,3,5"
-                Layout.preferredHeight: root.text_default_height
+                Layout.preferredHeight: root.textDefaultHeight
                 Layout.preferredWidth: 60
                 onAccepted: {
                     btnQuery.click()
@@ -209,7 +209,7 @@ Window {
                 bottomPadding: 0
                 Layout.fillWidth: true
                 placeholderText: qsTr("山隨平野盡")
-                Layout.preferredHeight: root.text_default_height
+                Layout.preferredHeight: root.textDefaultHeight
                 onAccepted: {
                     btnQuery.click()
                 }
@@ -225,7 +225,7 @@ Window {
                 bottomPadding: 0
                 Layout.fillWidth: true
                 placeholderText: qsTr("仄平平仄仄")
-                Layout.preferredHeight: root.text_default_height
+                Layout.preferredHeight: root.textDefaultHeight
                 onAccepted: {
                     btnQuery.click()
                 }
@@ -241,8 +241,8 @@ Window {
                 bottomPadding: 0
                 leftPadding: 0
                 rightPadding: 0
-                Layout.preferredWidth: root.text_default_height+12
-                Layout.preferredHeight: root.text_default_height
+                Layout.preferredWidth: root.textDefaultHeight+12
+                Layout.preferredHeight: root.textDefaultHeight
                 onClicked: {
                     // 调用 C++ 搜索逻辑
                     interf.query([inputJu.text,
@@ -293,15 +293,15 @@ Window {
                         anchors.fill: parent
                         onClicked: {
                             interf.searchById(model.id)
-                            popup_Poem.title    = model.title
-                            popup_Poem.author   = model.author
-                            popup_Poem.ju       = model.ju
-                            popup_Poem.yan      = model.yan
-                            popup_Poem.jushu    = model.jushu
-                            popup_Poem.ticai    = model.ticai
-                            popup_Poem.juind    = model.juind
-                            popup_Poem.pz       = model.pz
-                            popup_Poem.yun      = model.yun
+                            popupPoem.title    = model.title
+                            popupPoem.author   = model.author
+                            popupPoem.ju       = model.ju
+                            popupPoem.yan      = model.yan
+                            popupPoem.jushu    = model.jushu
+                            popupPoem.ticai    = model.ticai
+                            popupPoem.juind    = model.juind
+                            popupPoem.pz       = model.pz
+                            popupPoem.yun      = model.yun
                         }
                     }
 
@@ -404,10 +404,10 @@ Window {
                 bottomPadding: 0
                 leftPadding: 0
                 rightPadding: 0
-                Layout.preferredWidth: root.text_default_height+12
-                Layout.preferredHeight: root.text_default_height
+                Layout.preferredWidth: root.textDefaultHeight+12
+                Layout.preferredHeight: root.textDefaultHeight
                 onClicked: {
-                    popup_Info.open()
+                    popupInfo.open()
                 }
             }
 
@@ -420,36 +420,36 @@ Window {
                 bottomPadding: 0
                 leftPadding: 0
                 rightPadding: 0
-                Layout.preferredWidth: text_default_height+12
-                Layout.preferredHeight: text_default_height
+                Layout.preferredWidth: textDefaultHeight+12
+                Layout.preferredHeight: textDefaultHeight
                 onClicked: {
-                    dialog_Settings.open()
+                    dialogSettings.open()
                 }
             }
         }
     }
 
     PopupPoem {
-        id: popup_Poem
+        id: popupPoem
         modal: true
         focus: true
 
         width: parent.width * 4 / 5
         height: parent.height / 2
-        anchors.centerIn: Overlay.overlay  // ✅ 始终居中
+        anchors.centerIn: Overlay.overlay  //  始终居中
     }
 
     PopupInfo {
-        id: popup_Info
+        id: popupInfo
         modal: true
         focus: true
 
         width: root.width * 4 / 5
-        anchors.centerIn: Overlay.overlay  // ✅ 始终居中
+        anchors.centerIn: Overlay.overlay  //  始终居中
     }
 
     SettingsDialog {
-        id: dialog_Settings
+        id: dialogSettings
         modal: true
         focus: true
 

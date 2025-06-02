@@ -26,7 +26,7 @@ Popup {
     property int ziSelected : -1
     property var zi_yuns: {
         let ret = []
-        for(let yunname of poem["韻目"][root.zi_disp]) {
+        for(let yunname of (poem ? poem["韻目"][root.zi_disp] : "")) {
             ret.push(root.psy[yunname])
         }
         return ret
@@ -34,7 +34,7 @@ Popup {
 
     function get_zi_pz(zi) {
         let pz_ret = "？"
-        for(let yunname of poem["韻目"][zi]) {
+        for(let yunname of (poem ? poem["韻目"][zi] : "")) {
             let yun = root.psy[yunname]
             // console.error("韵", yunname, JSON.stringify(yun), poem["韻目"][zi])
             if(pz_ret === "？")
@@ -49,7 +49,7 @@ Popup {
     property var ju_list: {
         const lines = []
         const regex = /[^，。？！；]+[，。？！；]/g
-        const matches = poem["內容"].match(regex) || []
+        const matches = (poem ? poem["內容"] : "").match(regex) || []
         const maxGroup = 5
 
         let i = 0
@@ -98,7 +98,7 @@ Popup {
     }
 
     function get_pz(yun) {
-        return yun["聲調"][0] === "平" ? "平" : "仄";
+        return (!poem || yun["聲調"][0] === "平") ? "平" : "仄";
     }
 
     // 自动高度（由 Layout 自动决定）
@@ -223,12 +223,12 @@ Popup {
             Layout.fillWidth: true
             Layout.preferredHeight: 1
             color: Material.theme === Material.Light ? "#ccc" : "#444"
-            visible: poem["注釋"] !== ""
+            visible: !poem || poem["注釋"] !== ""
         }
 
         RowLayout {
             Label {
-                Component.onCompleted: {console.error("体裁", implicitHeight, implicitWidth) }
+                // Component.onCompleted: {console.error("体裁", implicitHeight, implicitWidth) }
                 text: /*qsTr("体裁：") +*/ (root.yan !== "-1" ? root.yan : qsTr("杂")) + qsTr("言 ")
                       + root.jushu + qsTr("句 ")
                       + root.ticai
@@ -240,7 +240,7 @@ Popup {
             }
 
             PzTextItem {
-                Component.onCompleted: {console.error("韵脚", implicitHeight, implicitWidth) }
+                // Component.onCompleted: {console.error("韵脚", implicitHeight, implicitWidth) }
                 property var yunbu: root.psy[root.yun]
                 ju: {
                     if (root.yun === "")
@@ -262,8 +262,19 @@ Popup {
             }
 
             Label {
-                Component.onCompleted: {console.error("出律", implicitHeight, implicitWidth) }
-                text: qsTr("出律度") + parseFloat(root.poem["出律度"]).toFixed(2)
+                // Component.onCompleted: {console.error("出律", implicitHeight, implicitWidth) }
+                text: {
+                    if (!poem)
+                        return ""
+                    if (poem["出律度"] > 0)
+                        return qsTr("出律度") + parseFloat(root.poem["出律度"]).toFixed(2)
+                    if (poem["出律度"] === -1.0)
+                        return qsTr("非偶数句")
+                    if (poem["出律度"] === -2.0)
+                        return qsTr("言数不齐")
+                    if (poem["出律度"] === -5.0)
+                        return qsTr("换韵")
+                }
                 font.pixelSize: 14
                 horizontalAlignment: Text.AlignRight
                 Layout.alignment: Qt.AlignRight
@@ -276,7 +287,7 @@ Popup {
             Layout.fillWidth: true
             Layout.preferredHeight: 1
             color: Material.theme === Material.Light ? "#ccc" : "#444"
-            visible: poem["注釋"] !== ""
+            visible: !poem || poem["注釋"] !== ""
         }
 
         Label {
@@ -288,7 +299,7 @@ Popup {
             Layout.alignment: Qt.AlignRight
             Layout.fillWidth: true
             wrapMode: Text.Wrap
-            visible: poem["注釋"] !== ""
+            visible: !poem || poem["注釋"] !== ""
         }
 
         ScrollView {
@@ -297,7 +308,7 @@ Popup {
             Layout.fillHeight: true
             // Layout.maximumHeight: 100
             Layout.alignment: Qt.AlignHCenter
-            visible: poem["注釋"] !== ""
+            visible: !poem || poem["注釋"] !== ""
 
             // ScrollBar.vertical.policy: ScrollBar.AlwaysOn
 
@@ -307,7 +318,7 @@ Popup {
 
                 Repeater {
                     model: {
-                        return poem["注釋"].split(/\s*;\s*/).filter(str => str.length > 0);
+                        return (poem ? poem["注釋"] : "").split(/\s*;\s*/).filter(str => str.length > 0);
                     }
 
                     delegate: Text {
