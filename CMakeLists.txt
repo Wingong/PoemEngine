@@ -29,6 +29,7 @@ qt_add_qml_module(appPoemEngine
     URI PoemEngine
     VERSION 1.0
     QML_FILES
+        PoemEngineUi/DebugOutline.qml
         PoemEngineUi/Main.qml
         PoemEngineUi/PopupInfo.qml
         PoemEngineUi/PopupPoem.qml
@@ -50,7 +51,7 @@ qt_add_qml_module(appPoemEngine
         THIRD_PARTY_LICENSES.txt
         QML_FILES
         RESOURCES
-        QML_FILES PoemEngineUi/DebugOutline.qml
+        QML_FILES
 )
 
 set_source_files_properties(AppSettings.qml
@@ -66,7 +67,6 @@ qt_add_resources(appPoemEngine "resources"
     PREFIX "/"
     FILES
         data/qts.csv
-        data/ju-tab.csv
         data/psy-map.json
         data/psy-yunbu.json
         data/unihan-extend.json

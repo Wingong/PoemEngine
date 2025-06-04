@@ -70,7 +70,6 @@ int main(int argc, char *argv[])
 
     QMetaObject::invokeMethod(manager, &PoemManager::load,
                               QString(":/data/qts.csv"),
-                              QString(":/data/ju-tab.csv"),
                               QString(":/data/psy-map.json"),
                               QString(":/data/psy-yunbu.json"),
                               QString(":/data/unihan-extend.json"));
