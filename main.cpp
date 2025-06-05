@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     QmlInterface *interf = new QmlInterface(app, engine, QString(":/data/psy-yunbu.json"));
 
     QObject::connect(manager, &PoemManager::progSet, interf, &QmlInterface::onFormat);
-    QObject::connect(manager, &PoemManager::dataHeaderLoaded, interf, &QmlInterface::onTableFirst);
+    QObject::connect(manager, &PoemManager::dataHeaderLoaded, interf, &QmlInterface::onTableHeader);
     QObject::connect(manager, &PoemManager::dataLoaded, interf, &QmlInterface::onTable);
 
     QObject::connect(interf, &QmlInterface::querySent, manager, &PoemManager::onQuery);

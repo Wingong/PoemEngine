@@ -15,9 +15,9 @@ public:
         : QSortFilterProxyModel(parent)
     {}
 
-    void setFilter(const QList<int> &lines)
+    void setFilter(const QList<qsizetype> &lines)
     {
-        this->m_lines = QSet<int>(lines.begin(), lines.end());
+        this->m_lines = QSet<qsizetype>(lines.begin(), lines.end());
         this->invalidateFilter();
     }
 
@@ -76,7 +76,7 @@ protected:
     }
 
 private:
-    QSet<int> m_lines;
+    QSet<qsizetype> m_lines;
     // QList<int> m_sortCols = {1, 0, 6};
     // QList<bool> m_ascs = {true, true, true};
     QList<std::pair<int, bool>> m_sortFields = {};

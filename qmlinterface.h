@@ -33,7 +33,7 @@ public:
     //                        const QString &index)
     Q_INVOKABLE void query(const QVariantList &values, const QVariantList &stricts)
     {
-        emit querySent(values, stricts);
+        emit querySent(values, stricts, false);
     }
 
     Q_INVOKABLE void searchById(const QString &id)
@@ -54,14 +54,14 @@ signals:
     void poemResultReceived(QVariantMap poem);
     void yunsResultReceived(QVariantList yuns);
 
-    void querySent(const QVariantList &values, const QVariantList &stricts);
+    void querySent(const QVariantList &values, const QVariantList &stricts, bool varSearch);
     void searchSent(const QString &id);
     void yunsSearchSent(const QChar &zi);
 
 public slots:
-    void onTableFirst(const QStringList &header, const QStringList &headerVar, const QList<QStringList> &result);
+    void onTableHeader(const QStringList &header, const QStringList &headerVar);
     void onTable(const QList<QStringList> &result);
-    void onFilter(const QList<int> &lines);
+    void onFilter(const QList<qsizetype> &lines);
     void onPoemSearched(const QVariantMap &poem);
     void onYunsSearched(const QList<QVariantMap> &yuns);
     void onFormat(const QString &format, int max);

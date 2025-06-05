@@ -49,11 +49,11 @@ void QmlInterface::sort(const QVariantList &sortFields)
     m_proxyModel.setSort(ret);
 }
 
-void QmlInterface::onTableFirst(const QStringList &header, const QStringList &headerVar, const QList<QStringList> &result)
+void QmlInterface::onTableHeader(const QStringList &header, const QStringList &headerVar)
 {
     m_model.clear();
 
-    qCritical() << "C++ DEBUG:" << __func__ << ":" << header << result;
+    qCritical() << "C++ DEBUG:" << __func__ << ":" << header << headerVar;
 
     QHash<int, QByteArray> roles;
     for(int i=0; i<header.size(); i ++)
@@ -61,16 +61,6 @@ void QmlInterface::onTableFirst(const QStringList &header, const QStringList &he
         roles[Qt::UserRole+i+1] = headerVar[i].toLatin1();
     }
     m_model.setItemRoleNames(roles);   // Qt 6 中这样设定角色名
-
-    for (const auto& row : result) {
-        QList<QStandardItem*> items{new QStandardItem};
-
-        for (int i=0; i<row.size(); i++) {
-            auto &text = row[i];
-            items.first()->setData(text, Qt::UserRole+i+1);
-        }
-        m_model.appendRow(items);
-    }
 }
 
 void QmlInterface::onTable(const QList<QStringList> &result)
@@ -85,9 +75,12 @@ void QmlInterface::onTable(const QList<QStringList> &result)
         }
         m_model.appendRow(items);
     }
+
+    if (m_model.rowCount() == 10000)
+        qCritical() << "句模型" << result.last() << m_model.data(m_model.index(9999, 0), Qt::UserRole+6+1).toString();
 }
 
-void QmlInterface::onFilter(const QList<int> &lines)
+void QmlInterface::onFilter(const QList<qsizetype> &lines)
 {
     onFormat(tr("设置中……"), 0);
     m_proxyModel.setFilter(lines);

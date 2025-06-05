@@ -6,6 +6,7 @@
 #include <QVariant>
 #include <QQueue>
 #include <QDebug>
+#include "trie.h"
 
 enum VariantType
 {
@@ -13,98 +14,14 @@ enum VariantType
     TradSimp,
 };
 
-// Trie 树节点
 template <typename T>
-struct TrieNode
-{
-    TrieNode(const T &emptyValue = T()) : data(emptyValue) {}
-    QHash<QChar, TrieNode<T>*> children;
-    T data; // 如果 data >= 0，则这个 key 指向对应的 data ，否则不指向。
-};
-
-// Trie 树
-template <typename T>
-class Trie
-{
-public:
-    TrieNode<T>* root;
-    const T emptyValue;
-
-    // 构造函数
-    Trie(const T &emptyValue = T())
-        : root(new TrieNode<T>(emptyValue))
-        , emptyValue(emptyValue)
-    {}
-
-    // 插入一个key
-    void insert(const QString& key, const T &data) {
-        auto node = root;
-        for (const QChar& ch : key) {
-            auto &child = node->children[ch];
-            if (!child) {
-                child = new TrieNode<T>(emptyValue);
-            }
-            node = child;
-        }
-        node->data = data;
-    }
-
-    T &operator[](const QString &key) {
-        auto node = root;
-        for (const QChar& ch : key) {
-            auto &child = node->children[ch];
-            if (!child) {
-                child = new TrieNode<T>(emptyValue);
-            }
-            node = child;
-        }
-        return node->data;
-    }
-
-    // 查询data
-    bool contains(const QString &key)
-    {
-        auto node = root;
-        for (const QChar& ch : key) {
-            auto it = node->children.find(ch);
-            if (it == node->children.end()) {
-                return false;
-            }
-            node = node->children[ch];
-        }
-        return node->data != emptyValue;
-    }
-};
+using Set = QSet<T>;
 
 template <typename T>
-using PSet = QSet<T>*;
+using TrieSet = Trie<Set<T>>;
 
 template <typename T>
-using TriePSet = Trie<PSet<T>>;
-
-template <typename T>
-using NodePSet = TrieNode<PSet<T>>;
-
-template <typename T>
-inline QDebug operator<<(QDebug debug, const TriePSet<T> &obj) {
-    QDebugStateSaver saver(debug); // 避免污染状态
-    debug.nospace() << "Trie{";
-    QQueue<std::pair<QString, NodePSet<T>*>> queue;
-    queue.enqueue(std::make_pair("", obj.root));
-    QString key = "";
-    while(!queue.isEmpty())
-    {
-        auto [key, node] = queue.dequeue();
-        if(node->data != obj.emptyValue)
-            debug << key << ": " << *(node->data) << ", ";
-        for(auto it = node->children.constBegin(); it != node->children.constEnd(); ++it)
-        {
-            queue.enqueue({key + it.key(), it.value()});
-        }
-    }
-    debug << "}";
-    return debug;
-}
+using NodeSet = TrieNode<Set<T>>;
 
 // 诗歌表格
 class PoemsTable
@@ -157,14 +74,15 @@ public:
                 lineData.append(field);
             // }
         }
-        data[id] = lineData;
-        return std::make_pair(id, data[id]);
+        qsizetype index = data.size();
+        data.append(lineData);
+        return std::make_pair(index, lineData);
     }
 
     const auto &headers() const {return fieldToCol;}
-    const QStringList &operator[](const QString &id) const {return data.find(id).value();}
+    const QStringList &operator[](int index) const {return data[index];}
     const int &operator()(const QString &field) const {return fieldToCol.find(field).value();}
-    const QString &operator()(const QString &id, const QString &field) const {return data.find(id).value().at(fieldToCol.value(field));}
+    const QString &operator()(int index, const QString &field) const {return data[index][fieldToCol.value(field)];}
     const int &mapToCol(const QString &field) const {return fieldToCol.find(field).value();}
 
     auto begin() const {return data.begin();}
@@ -175,7 +93,7 @@ public:
 private:
     int id_col = -1;
     QHash<QString, int> fieldToCol;
-    QHash<QString, QStringList> data;
+    QList<QStringList> data;
 };
 
 class PoemManager : public QObject
@@ -187,19 +105,21 @@ public:
     QStringList splitString(const QString &str);
 
     // 标题名
-    static QStringList dataHeader;
+    const static QStringList dataHeader;
     // 标题变量名，作为Role Names
-    static QStringList dataHeaderVar;
+    const static QStringList dataHeaderVar;
     // 可查询项
-    static QStringList queryFieldsJu;
-    static QStringList queryFieldsPoem;
+    const static QStringList dataHeadersJu;
+    const static QStringList dataHeadersVarJu;
+    const static QStringList dataHeadersPoem;
+    const static QStringList dataHeadersVarPoem;
 public slots:
     void load(const QString &qts_path = "://data/qts.csv",
               const QString &psy_path = "://data/psy-map.json",
               const QString &psy_yunbu_path = "://data/psy-yunbu.json",
               const QString var_path = "://data/unihan-extend.json");
 
-    void onQuery(const QVariantList &values, const QVariantList &stricts);
+    void onQuery(const QVariantList &values, const QVariantList &stricts, bool varSearch);
     void onSearchById(const QString &id);
     QString searchYunsByZi(const QChar &zi);
 signals:
@@ -207,9 +127,9 @@ signals:
     void loadEnd(int lines);
     void progSet(const QString &format, int max);
     void progVal(int val);
-    void dataHeaderLoaded(const QStringList &header, const QStringList &headerVar, const QList<QStringList> &result);
+    void dataHeaderLoaded(const QStringList &header, const QStringList &headerVar);
     void dataLoaded(const QList<QStringList> &result);
-    void queryEnd(const QList<int> &lines);
+    void queryEnd(const QList<qsizetype> &lines);
     void searchEnd(const QVariantMap &poem);
     void yunsSearchEnd(const QList<QVariantMap> &yuns);
 
@@ -231,9 +151,9 @@ private:
     }
 
     PoemsTable qts;
-    QList<std::pair<QString, int>> jubiao;
-    QHash<QString, TriePSet<qsizetype>> mapToJubiao;
-    QHash<QString, TriePSet<QString>> mapToQts;
+    QList<std::pair<qsizetype, qsizetype>> jubiao;
+    QHash<QString, TrieSet<qsizetype>> mapToJubiao;
+    QHash<QString, TrieSet<qsizetype>> mapToQts;
 
     // QMap<QString, QMap<QString, std::pair<Trie<>, QList<int>>>> to_jubiao;
 

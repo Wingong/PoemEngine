@@ -3,6 +3,7 @@
 
 #include <QtCore/QObject>
 #include <QtQml/QQmlEngine>
+#include <QCoreApplication>
 #include <QSettings>
 #include <QDebug>
 
@@ -26,7 +27,11 @@ class AppSettings : public QObject
      Q_SIGNAL void NAME##Changed();
 
 public:
-    explicit AppSettings(QObject *parent = nullptr);
+    explicit AppSettings(QObject *parent = nullptr)
+        : QObject{parent}
+        , m_settings(QCoreApplication::organizationName(),
+                     QCoreApplication::applicationName())
+    {}
 
     SETTING_ACCESSOR(QString        , Ui    , languageCode  , LanguageCode  , ""    )
     SETTING_ACCESSOR(int            , Ui    , theme         , Theme         , 2     )

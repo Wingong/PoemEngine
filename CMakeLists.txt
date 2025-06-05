@@ -41,17 +41,15 @@ qt_add_qml_module(appPoemEngine
         poemmanager.h
         qmlinterface.cpp
         qmlinterface.h
-        juproxymodel.cpp
+
         juproxymodel.h
         appsettings.h
-        appsettings.cpp
+        trie.h
+
     RESOURCES
         CHANGELOG.md
         LICENSE.md
         THIRD_PARTY_LICENSES.txt
-        QML_FILES
-        RESOURCES
-        QML_FILES
 )
 
 set_source_files_properties(AppSettings.qml
