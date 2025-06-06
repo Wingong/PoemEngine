@@ -80,9 +80,9 @@ public:
     }
 
     const auto &headers() const {return fieldToCol;}
-    const QStringList &operator[](int index) const {return data[index];}
+    const QStringList &operator[](qsizetype index) const {return data[index];}
     const int &operator()(const QString &field) const {return fieldToCol.find(field).value();}
-    const QString &operator()(int index, const QString &field) const {return data[index][fieldToCol.value(field)];}
+    const QString &operator()(qsizetype index, const QString &field) const {return data[index][fieldToCol.value(field)];}
     const int &mapToCol(const QString &field) const {return fieldToCol.find(field).value();}
 
     auto begin() const {return data.begin();}
@@ -92,7 +92,7 @@ public:
 
 private:
     int id_col = -1;
-    QHash<QString, int> fieldToCol;
+    QMap<QString, int> fieldToCol;
     QList<QStringList> data;
 };
 
@@ -101,8 +101,9 @@ class PoemManager : public QObject
     Q_OBJECT
 public:
     explicit PoemManager(QObject *parent = nullptr);
-    QStringList splitNums(const QString &str);
-    QStringList splitString(const QString &str);
+
+    QList<QStringList> splitNums(const QString &str);
+    QList<QStringList> splitString(const QString &str, bool var = false);
 
     // 标题名
     const static QStringList dataHeader;
@@ -120,7 +121,7 @@ public slots:
               const QString var_path = "://data/unihan-extend.json");
 
     void onQuery(const QVariantList &values, const QVariantList &stricts, bool varSearch);
-    void onSearchById(const QString &id);
+    void onSearchById(const QString &index);
     QString searchYunsByZi(const QChar &zi);
 signals:
     void debug(const QString information);
@@ -151,9 +152,9 @@ private:
     }
 
     PoemsTable qts;
-    QList<std::pair<qsizetype, qsizetype>> jubiao;
-    QHash<QString, TrieSet<qsizetype>> mapToJubiao;
-    QHash<QString, TrieSet<qsizetype>> mapToQts;
+    qsizetype jubiaoSize;
+    QHash<QString, QList<QHash<QChar, QSet<qsizetype>>>> mapToJubiao;
+    QHash<QString, QList<QHash<QChar, QSet<qsizetype>>>> mapToQts;
 
     // QMap<QString, QMap<QString, std::pair<Trie<>, QList<int>>>> to_jubiao;
 

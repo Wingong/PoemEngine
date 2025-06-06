@@ -22,12 +22,13 @@ Dialog {
     property var sortOptionsModel: [
         { text: qsTr("诗题"), value: 0 },
         { text: qsTr("作者"), value: 1 },
-        { text: qsTr("诗句"), value: 2 },
-        { text: qsTr("平仄"), value: 7 },
-        { text: qsTr("言数"), value: 3 },
-        { text: qsTr("句数"), value: 4 },
-        { text: qsTr("体裁"), value: 5 },
-        { text: qsTr("句序"), value: 6 },
+        { text: qsTr("言数"), value: 2 },
+        { text: qsTr("句数"), value: 3 },
+        { text: qsTr("体裁"), value: 4 },
+        { text: qsTr("韵脚"), value: 4 },
+        { text: qsTr("诗句"), value: 7 },
+        { text: qsTr("句序"), value: 8 },
+        { text: qsTr("平仄"), value: 9 },
     ]
 
     // 通过 value 查找 index
@@ -188,7 +189,9 @@ Dialog {
                 id: optVarSearch
                 text: qsTr("繁简、异体通搜")
                 checked:  AppSettings.variantSearch
-                onCheckedChanged:  AppSettings.variantSearch = checked
+                onCheckedChanged: {
+                    AppSettings.variantSearch = checked
+                }
             }
         }
 

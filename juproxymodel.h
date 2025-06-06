@@ -32,6 +32,12 @@ public:
         endResetModel();
     }
 
+    void sort(int column, Qt::SortOrder order = Qt::AscendingOrder) override
+    {
+        QSortFilterProxyModel::sort(column, order);
+
+    }
+
 protected:
     bool lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const override {
         // qDebug() << source_left << source_right;
@@ -45,10 +51,13 @@ protected:
             auto leftData = sourceModel()->data(source_left, col).toString();
             auto rightData = sourceModel()->data(source_right, col).toString();
 
+            // qCritical() << field << m_sortFields << leftData << rightData;
+
             if(leftData == rightData)
             {
-                auto left_id = sourceModel()->data(source_left, 8+Qt::UserRole+1).toString();
-                auto right_id = sourceModel()->data(source_right, 8+Qt::UserRole+1).toString();
+                // 同题目排序
+                auto left_id = sourceModel()->data(source_left, id_col+Qt::UserRole+1).toString();
+                auto right_id = sourceModel()->data(source_right, id_col+Qt::UserRole+1).toString();
 
                 if(col != 0+Qt::UserRole+1 || left_id == right_id)
                     continue;
@@ -80,6 +89,7 @@ private:
     // QList<int> m_sortCols = {1, 0, 6};
     // QList<bool> m_ascs = {true, true, true};
     QList<std::pair<int, bool>> m_sortFields = {};
+    const qsizetype id_col = 6;
 };
 
 #endif // JUPROXYMODEL_H

@@ -31,25 +31,27 @@ Window {
     // property string c_id    : model.col8
 
     property var trDict: {
-        "诗句": qsTr("诗句"),
-        "平仄": qsTr("平仄"),
         "诗题": qsTr("诗题"),
         "作者": qsTr("作者"),
         "言数": qsTr("言数"),
         "句数": qsTr("句数"),
         "体裁": qsTr("体裁"),
-        "句序": qsTr("句序")
+        "韵脚": qsTr("韵脚"),
+        "诗句": qsTr("诗句"),
+        "句序": qsTr("句序"),
+        "平仄": qsTr("平仄")
     }
 
     property var colDict: {
-        "诗句": 2,
-        "平仄": 7,
         "诗题": 0,
         "作者": 1,
-        "言数": 3,
-        "句数": 4,
-        "体裁": 5,
-        "句序": 6
+        "言数": 2,
+        "句数": 3,
+        "体裁": 4,
+        "韵脚": 5,
+        "诗句": 7,
+        "句序": 8,
+        "平仄": 9,
     }
 
     Component.onCompleted: {
@@ -253,14 +255,16 @@ Window {
                                  inputJushu.text,
                                  inputTicai.text,
                                  inputJuind.text],
+
                                  [AppSettings.strictJu,
                                  AppSettings.strictPz,
                                  AppSettings.strictTitle,
                                  AppSettings.strictAuthor,
                                  false,
                                  false,
-                                 AppSettings.strictTicai,
-                                 false])
+                                 AppSettings.strictTicai,],
+
+                                 AppSettings.variantSearch)
                 }
                 // Layout.preferredWidth: 60
             }
@@ -292,6 +296,7 @@ Window {
                         id: mouseArea
                         anchors.fill: parent
                         onClicked: {
+                            console.error(model)
                             interf.searchById(model.id)
                             popupPoem.title    = model.title
                             popupPoem.author   = model.author

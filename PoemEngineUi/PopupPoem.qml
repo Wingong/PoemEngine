@@ -49,7 +49,7 @@ Popup {
     property var ju_list: {
         const lines = []
         const regex = /[^，。？！；]+[，。？！；]/g
-        const matches = (poem ? poem["內容"] : "").match(regex) || []
+        const matches = poem ? poem["內容"].split("|") : []    //(poem ? poem["內容"] : "").match(regex) || []
         const maxGroup = 5
 
         let i = 0

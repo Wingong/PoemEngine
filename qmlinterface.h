@@ -31,14 +31,14 @@ public:
     //                        const QString &shu,
     //                        const QString &ticai,
     //                        const QString &index)
-    Q_INVOKABLE void query(const QVariantList &values, const QVariantList &stricts)
+    Q_INVOKABLE void query(const QVariantList &values, const QVariantList &stricts, bool variantSearch)
     {
-        emit querySent(values, stricts, false);
+        emit querySent(values, stricts, variantSearch);
     }
 
-    Q_INVOKABLE void searchById(const QString &id)
+    Q_INVOKABLE void searchById(const QString &index)
     {
-        emit searchSent(id);
+        emit searchSent(index);
     }
 
     Q_INVOKABLE void searchYunsByZi(const QChar &zi)
@@ -55,7 +55,7 @@ signals:
     void yunsResultReceived(QVariantList yuns);
 
     void querySent(const QVariantList &values, const QVariantList &stricts, bool varSearch);
-    void searchSent(const QString &id);
+    void searchSent(const QString &index);
     void yunsSearchSent(const QChar &zi);
 
 public slots:
